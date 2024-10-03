@@ -1,19 +1,19 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-opensearch",
   "version": "0.1.0",
   "description": "",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Steven Linn",
+    "email": "smlucf@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/stevenlafl/n8n-nodes-opensearch.git"
   },
   "engines": {
     "node": ">=18.10",
@@ -36,13 +36,15 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/OpenSearchApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/OpenSearch/OpenSearch.node.js",
+      "dist/nodes/VectorStoreOpenSearch/VectorStoreOpenSearch.node.js"
     ]
+  },
+  "dependencies": {
+    "@opensearch-project/opensearch": "2.12.0"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^7.15.0",
@@ -54,6 +56,7 @@
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
-    "n8n-workflow": "*"
+    "n8n-workflow": "*",
+    "@n8n/n8n-nodes-langchain": "*"
   }
 }

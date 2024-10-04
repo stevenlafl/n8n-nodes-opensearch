@@ -10,7 +10,6 @@ The [OpenSearch](https://opensearch.org/) project, created by Amazon, is a forke
 [Operations](#operations)  
 [Credentials](#credentials)  <!-- delete if no auth needed -->  
 [Compatibility](#compatibility)  
-[Usage](#usage)  <!-- delete if not using this section -->  
 [Resources](#resources)  
 [Version history](#version-history)  <!-- delete if not using this section -->  
 

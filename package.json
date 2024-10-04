@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-opensearch",
   "version": "0.1.0",
-  "description": "",
+  "description": "Adds OpenSearch vector store and generic nodes to n8n",
   "keywords": [
     "n8n-community-node-package"
   ],

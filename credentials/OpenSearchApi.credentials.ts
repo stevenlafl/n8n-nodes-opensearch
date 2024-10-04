@@ -10,7 +10,7 @@ export class OpenSearchApi implements ICredentialType {
 
 	displayName = 'OpenSearch API';
 
-	documentationUrl = 'opensearch';
+	documentationUrl = 'https://docs.n8n.io/credentials/openSearchApi/';
 
 	properties: INodeProperties[] = [
 		{

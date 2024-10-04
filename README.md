@@ -1,4 +1,4 @@
-# n8n-nodes-
+# n8n-nodes-opensearch
 
 This is an n8n community node. It lets you use OpenSearch in your n8n workflows.
 

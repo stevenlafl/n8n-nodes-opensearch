@@ -14,6 +14,7 @@ export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: ID
 		'openSearchApi',
 	)) as OpenSearchApiCredentials;
 
+	// biome-ignore lint/style/useTemplate: <explanation>
 	const bulkBody = Object.values(body).flat().join('\n') + '\n';
 
 	const options: IHttpRequestOptions = {
@@ -35,6 +36,7 @@ export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: ID
 	if (response.statusCode > 299) {
 		if (this.continueOnFail()) {
 			return Object.values(body).map((_) => ({ error: response.body.error }));
+		// biome-ignore lint/style/noUselessElse: <explanation>
 		} else {
 			throw new NodeApiError(this.getNode(), { error: response.body.error } as JsonObject);
 		}
@@ -72,10 +74,12 @@ export async function openSearchApiRequest(
 	};
 
 	if (!Object.keys(body).length) {
+		// biome-ignore lint/performance/noDelete: <explanation>
 		delete options.body;
 	}
 
 	if (!Object.keys(qs).length) {
+		// biome-ignore lint/performance/noDelete: <explanation>
 		delete options.qs;
 	}
 
@@ -91,6 +95,7 @@ export async function openSearchApiRequestAllItems(
 	indexId: string,
 	body: IDataObject = {},
 	qs: IDataObject = {},
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 ): Promise<any> {
 	//https://www.elastic.co/guide/en/elasticsearch/reference/7.16/paginate-search-results.html#search-after
 	try {
@@ -100,6 +105,7 @@ export async function openSearchApiRequestAllItems(
 		)?.id as string;
 
 		let returnData: IDataObject[] = [];
+		// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
 		let responseData;
 		let searchAfter: string[] = [];
 

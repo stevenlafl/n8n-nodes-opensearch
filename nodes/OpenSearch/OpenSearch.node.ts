@@ -1,3 +1,4 @@
+/* eslint-disable n8n-nodes-base/node-filename-against-convention */
 import type {
 	IExecuteFunctions,
 	IDataObject,
@@ -6,7 +7,7 @@ import type {
 	INodeTypeDescription,
 	JsonObject,
 } from 'n8n-workflow';
-import { NodeConnectionType, jsonParse, NodeApiError } from 'n8n-workflow';
+import { jsonParse, NodeApiError, NodeConnectionType } from 'n8n-workflow';
 
 import omit from 'lodash/omit';
 import {
@@ -31,7 +32,9 @@ export class OpenSearch implements INodeType {
 		defaults: {
 			name: 'OpenSearch',
 		},
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
 		inputs: [NodeConnectionType.Main],
+		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
 		outputs: [NodeConnectionType.Main],
 		credentials: [
 			{
@@ -71,7 +74,8 @@ export class OpenSearch implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as 'document' | 'index';
 		const operation = this.getNodeParameter('operation', 0);
 
-		let responseData;
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		let responseData: any;
 
 		let bulkBody: IDataObject = {};
 
@@ -217,6 +221,8 @@ export class OpenSearch implements INodeType {
 
 					if (dataToSend === 'defineBelow') {
 						const fields = this.getNodeParameter('fieldsUi.fieldValues', i, []) as FieldsUiValues;
+						// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+						// biome-ignore lint/complexity/noForEach: <explanation>
 						fields.forEach(({ fieldId, fieldValue }) => (body[fieldId] = fieldValue));
 					} else {
 						const inputData = items[i].json;
@@ -271,6 +277,8 @@ export class OpenSearch implements INodeType {
 
 					if (dataToSend === 'defineBelow') {
 						const fields = this.getNodeParameter('fieldsUi.fieldValues', i, []) as FieldsUiValues;
+						// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+						// biome-ignore lint/complexity/noForEach: <explanation>
 						fields.forEach(({ fieldId, fieldValue }) => (body.doc[fieldId] = fieldValue));
 					} else {
 						const inputData = items[i].json;
@@ -327,6 +335,7 @@ export class OpenSearch implements INodeType {
 
 					responseData = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`);
 					responseData = { id: indexId, ...responseData };
+					// biome-ignore lint/performance/noDelete: <explanation>
 					delete responseData.index;
 				} else if (operation === 'delete') {
 					// ----------------------------------------
@@ -393,7 +402,7 @@ export class OpenSearch implements INodeType {
 						const errorData = itemData.error as IDataObject;
 						const message = errorData.type as string;
 						const description = errorData.reason as string;
-						const itemIndex = parseInt(Object.keys(bulkBody)[j]);
+						const itemIndex = Number.parseInt(Object.keys(bulkBody)[j]);
 						if (this.continueOnFail()) {
 							returnData.push(
 								...this.helpers.constructExecutionMetaData(
@@ -402,6 +411,7 @@ export class OpenSearch implements INodeType {
 								),
 							);
 							continue;
+						// biome-ignore lint/style/noUselessElse: <explanation>
 						} else {
 							throw new NodeApiError(this.getNode(), {
 								message,
@@ -412,7 +422,7 @@ export class OpenSearch implements INodeType {
 					}
 					const executionData = this.helpers.constructExecutionMetaData(
 						this.helpers.returnJsonArray(itemData),
-						{ itemData: { item: parseInt(Object.keys(bulkBody)[j]) } },
+						{ itemData: { item: Number.parseInt(Object.keys(bulkBody)[j]) } },
 					);
 					returnData.push(...executionData);
 				}
@@ -427,7 +437,7 @@ export class OpenSearch implements INodeType {
 					const errorData = itemData.error as IDataObject;
 					const message = errorData.type as string;
 					const description = errorData.reason as string;
-					const itemIndex = parseInt(Object.keys(bulkBody)[j]);
+					const itemIndex = Number.parseInt(Object.keys(bulkBody)[j]);
 					if (this.continueOnFail()) {
 						returnData.push(
 							...this.helpers.constructExecutionMetaData(
@@ -436,6 +446,7 @@ export class OpenSearch implements INodeType {
 							),
 						);
 						continue;
+					// biome-ignore lint/style/noUselessElse: <explanation>
 					} else {
 						throw new NodeApiError(this.getNode(), {
 							message,
@@ -446,7 +457,7 @@ export class OpenSearch implements INodeType {
 				}
 				const executionData = this.helpers.constructExecutionMetaData(
 					this.helpers.returnJsonArray(itemData),
-					{ itemData: { item: parseInt(Object.keys(bulkBody)[j]) } },
+					{ itemData: { item: Number.parseInt(Object.keys(bulkBody)[j]) } },
 				);
 				returnData.push(...executionData);
 			}

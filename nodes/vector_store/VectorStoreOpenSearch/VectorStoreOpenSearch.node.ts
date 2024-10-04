@@ -1,12 +1,18 @@
-import { OpenSearchVectorStore } from '@langchain/community/vectorstores/opensearch';
+import { OpenSearchClientArgs, OpenSearchVectorStore } from '@langchain/community/vectorstores/opensearch';
 import {
 	Client as OpenSearchClient,
-	ClientOptions as OpenSearchClientOptions,
+	type ClientOptions as OpenSearchClientOptions,
 } from '@opensearch-project/opensearch';
-import { createVectorStoreNode } from '@n8n/n8n-nodes-langchain/dist/nodes/vector_store/shared/createVectorStoreNode';
+import { createVectorStoreNode } from '../shared/createVectorStoreNode';
 import type { INodeProperties } from 'n8n-workflow';
-import { metadataFilterField } from '@n8n/n8n-nodes-langchain/dist/utils/sharedFields';
-import https from 'https';
+import { metadataFilterField } from '../../../utils/sharedFields';
+import https from 'node:https';
+
+type FieldOptions = {
+	vectorFieldName: string;
+	textFieldName: string;
+	metadataFieldName: string;
+};
 
 const sharedFields: INodeProperties[] = [
 	{
@@ -14,81 +20,51 @@ const sharedFields: INodeProperties[] = [
 		name: 'indexName',
 		type: 'string',
 		default: 'vectors',
-		description: 'The OpenSearch index name to store the vectors in.',
+		description: 'The OpenSearch index name to store the vectors in',
 	},
 ];
 
-const columnNamesField: INodeProperties = {
-	displayName: 'Column Names',
-	name: 'columnNames',
+const fieldNamesField: INodeProperties = {
+	displayName: 'Field Names',
+	name: 'fieldNames',
 	type: 'fixedCollection',
-	description: 'The names of the columns in the PGVector table',
+	description: 'The names of the fields in the OpenSearch index',
 	default: {
 		values: {
-			idColumnName: 'id',
-			vectorColumnName: 'embedding',
-			contentColumnName: 'text',
-			metadataColumnName: 'metadata',
+			vectorFieldName: 'embedding',
+			textFieldName: 'text',
+			metadataFieldName: 'metadata',
 		},
 	},
 	typeOptions: {},
-	placeholder: 'Set Column Names',
+	placeholder: 'Set Field Names',
 	options: [
 		{
 			name: 'values',
-			displayName: 'Column Name Settings',
+			displayName: 'Field Name Settings',
 			values: [
 				{
-					displayName: 'ID Column Name',
-					name: 'idColumnName',
-					type: 'string',
-					default: 'id',
-					required: true,
-				},
-				{
-					displayName: 'Vector Column Name',
-					name: 'vectorColumnName',
+					displayName: 'Vector Field Name',
+					name: 'vectorFieldName',
 					type: 'string',
 					default: 'embedding',
 					required: true,
 				},
 				{
-					displayName: 'Content Column Name',
-					name: 'contentColumnName',
+					displayName: 'Content Field Name',
+					name: 'contentFieldName',
 					type: 'string',
 					default: 'text',
 					required: true,
 				},
 				{
-					displayName: 'Metadata Column Name',
-					name: 'metadataColumnName',
+					displayName: 'Metadata Field Name',
+					name: 'metadataFieldName',
 					type: 'string',
 					default: 'metadata',
 					required: true,
 				},
 			],
-		},
-	],
-};
-
-const distanceStrategyField: INodeProperties = {
-	displayName: 'Distance Strategy',
-	name: 'distanceStrategy',
-	type: 'options',
-	default: 'cosine',
-	description: 'The method to calculate the distance between two vectors',
-	options: [
-		{
-			name: 'Cosine',
-			value: 'cosine',
-		},
-		{
-			name: 'Inner Product',
-			value: 'innerProduct',
-		},
-		{
-			name: 'Euclidean',
-			value: 'euclidean',
 		},
 	],
 };
@@ -100,7 +76,7 @@ const insertFields: INodeProperties[] = [
 		type: 'collection',
 		placeholder: 'Add Option',
 		default: {},
-		options: [columnNamesField],
+		options: [fieldNamesField],
 	},
 ];
 
@@ -111,7 +87,7 @@ const retrieveFields: INodeProperties[] = [
 		type: 'collection',
 		placeholder: 'Add Option',
 		default: {},
-		options: [distanceStrategyField, columnNamesField, metadataFilterField],
+		options: [fieldNamesField, metadataFilterField],
 	},
 ];
 
@@ -126,7 +102,6 @@ export const VectorStoreOpenSearch = createVectorStoreNode({
 		displayName: 'OpenSearch Vector Store',
 		name: 'vectorStoreOpenSearch',
 		credentials: [{ name: 'openSearchApi', required: true }],
-		operationModes: ['load', 'insert', 'retrieve'],
 		docsUrl:
 			'https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.vectorstoreopensearch/',
 	},
@@ -141,7 +116,7 @@ export const VectorStoreOpenSearch = createVectorStoreNode({
 
 		const credentials = await context.getCredentials('openSearchApi');
 
-		let clientOptions: OpenSearchClientOptions = {
+		const clientOptions: OpenSearchClientOptions = {
 			node: String(credentials.baseUrl),
 			auth: {
 				username: String(credentials.username),
@@ -156,10 +131,19 @@ export const VectorStoreOpenSearch = createVectorStoreNode({
 
 		const osClient = new OpenSearchClient(clientOptions);
 
-		const config = {
+		const fieldNames = context.getNodeParameter('options.fieldNames.values', 0, {
+			vectorFieldName: 'embedding',
+			contentFieldName: 'text',
+			metadataFieldName: 'metadata',
+		}) as FieldOptions;
+
+		const config: OpenSearchClientArgs = {
 			client: osClient,
 			indexName,
+			...fieldNames
 		};
+
+		console.log('hello');
 
 		return new OpenSearchVectorStore(embeddings, config);
 	},
@@ -170,7 +154,7 @@ export const VectorStoreOpenSearch = createVectorStoreNode({
 
 		const credentials = await context.getCredentials('openSearchApi');
 
-		let clientOptions: OpenSearchClientOptions = {
+		const clientOptions: OpenSearchClientOptions = {
 			node: String(credentials.baseUrl),
 			auth: {
 				username: String(credentials.username),
@@ -185,10 +169,19 @@ export const VectorStoreOpenSearch = createVectorStoreNode({
 
 		const osClient = new OpenSearchClient(clientOptions);
 
-		const config: any = {
+		const fieldNames = context.getNodeParameter('options.fieldNames.values', 0, {
+			vectorFieldName: 'embedding',
+			contentFieldName: 'text',
+			metadataFieldName: 'metadata',
+		}) as FieldOptions;
+
+		const config: OpenSearchClientArgs = {
 			client: osClient,
 			indexName,
+			...fieldNames
 		};
+
+		console.log("hello", documents);
 
 		await OpenSearchVectorStore.fromDocuments(documents, embeddings, config);
 	},

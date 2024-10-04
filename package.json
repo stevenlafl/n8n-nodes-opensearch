@@ -40,23 +40,29 @@
     ],
     "nodes": [
       "dist/nodes/OpenSearch/OpenSearch.node.js",
-      "dist/nodes/VectorStoreOpenSearch/VectorStoreOpenSearch.node.js"
+      "dist/nodes/vector_store/VectorStoreOpenSearch/VectorStoreOpenSearch.node.js"
     ]
   },
   "dependencies": {
     "@opensearch-project/opensearch": "2.12.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.10",
     "@typescript-eslint/parser": "^7.15.0",
+    "@langchain/community": "^0.3.2",
+    "@langchain/core": "^0.3.3",
+    "@langchain/textsplitters": "0.1.0",
     "eslint": "^8.56.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.1",
     "gulp": "^4.0.2",
-    "n8n-workflow": "*",
+    "langchain": "^0.3.2",
+    "lodash": "^4.17.21",
     "prettier": "^3.3.2",
-    "typescript": "^5.5.3"
+    "tmp-promise": "3.0.3",
+    "typescript": "^5.5.3",
+    "zod": "3.23.8"
   },
   "peerDependencies": {
-    "n8n-workflow": "*",
-    "@n8n/n8n-nodes-langchain": "*"
+    "n8n-workflow": "1.48.0"
   }
 }

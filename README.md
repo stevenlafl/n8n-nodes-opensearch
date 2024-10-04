@@ -1,8 +1,8 @@
 # n8n-nodes-
 
-This is an n8n community node. It lets you use _app/service name_ in your n8n workflows.
+This is an n8n community node. It lets you use OpenSearch in your n8n workflows.
 
-The OpenSearch project, created by Amazon, is a forked search project based on old versions of Elasticsearch and Kibana.
+The [OpenSearch](https://opensearch.org/) project, created by Amazon, is a forked search project based on old versions of Elasticsearch and Kibana.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -20,29 +20,42 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## Operations
 
-_List the operations supported by your node._
+**Document Actions**
+
+ - Create a document
+ - Delete a document
+ - Get a document
+ - Get many documents
+ - Update a document
+
+**Index Actions**
+
+- Create an index
+- Delete an index
+- Get an index
+- Get many indices
+
+**OpenSearch Vector Store**
+
+- Retrieve
+- Insert
+- Get Many
 
 ## Credentials
 
-_If users need to authenticate with the app/service, provide details here. You should include prerequisites (such as signing up with the service), available authentication methods, and how to set them up._
+You will need a baseURL and a username and password to authenticate to the OpenSearch service.
 
 ## Compatibility
 
-_State the minimum n8n version, as well as which versions you test against. You can also include any known version incompatibility issues._
-
-## Usage
-
-_This is an optional section. Use it to help users with any difficult or confusing aspects of the node._
-
-_By the time users are looking for community nodes, they probably already know n8n basics. But if you expect new users, you can link to the [Try it out](https://docs.n8n.io/try-it-out/) documentation to help them get started._
+Supports n8n 1.48.0+, tested with 1.62.1
 
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-* _Link to app/service documentation._
+* [OpenSearch Langchain documentation](https://js.langchain.com/docs/integrations/vectorstores/opensearch/)
 
 ## Version history
 
-_This is another optional section. If your node has multiple versions, include a short description of available versions and what changed, as well as any compatibility impact._
+0.1.0 - First working version, no documentation
 
 

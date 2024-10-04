@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 import { NodeConnectionType, type INodeProperties } from 'n8n-workflow';
 
 export const metadataFilterField: INodeProperties = {

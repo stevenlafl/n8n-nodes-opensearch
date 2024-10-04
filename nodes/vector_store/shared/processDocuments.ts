@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 import type { Document } from '@langchain/core/documents';
 import type { INodeExecutionData } from 'n8n-workflow';
 import { N8nJsonLoader } from '../../../utils/N8nJsonLoader';

@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 import { NodeOperationError, NodeConnectionType } from 'n8n-workflow';
 import type { ConnectionTypes, IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 

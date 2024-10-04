@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 import { NodeConnectionType, NodeOperationError, jsonStringify } from 'n8n-workflow';
 import type { EventNamesAiNodesType, IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';

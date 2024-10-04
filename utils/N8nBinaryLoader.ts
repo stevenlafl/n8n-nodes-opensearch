@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
 import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';

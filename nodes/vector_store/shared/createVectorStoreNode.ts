@@ -1,3 +1,4 @@
+// from @n8n/n8n-nodes-langchain:1.48.0
 /* eslint-disable n8n-nodes-base/node-filename-against-convention */
 /* eslint-disable n8n-nodes-base/node-dirname-against-convention */
 import type { VectorStore } from '@langchain/core/vectorstores';

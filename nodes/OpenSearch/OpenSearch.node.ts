@@ -13,12 +13,13 @@ import omit from 'lodash/omit';
 import {
 	openSearchApiRequest,
 	openSearchApiRequestAllItems,
+	openSearchApiRequestWithScroll,
 	openSearchBulkApiRequest,
 } from './GenericFunctions';
 
 import { documentFields, documentOperations, indexFields, indexOperations } from './descriptions';
 
-import type { DocumentGetAllOptions, FieldsUiValues } from './types';
+import type { DocumentGetAllOptions, DocumentSearchOptions, FieldsUiValues } from './types';
 
 export class OpenSearch implements INodeType {
 	description: INodeTypeDescription = {
@@ -152,51 +153,164 @@ export class OpenSearch implements INodeType {
 					if (Object.keys(options).length) {
 						const { query, ...rest } = options;
 						if (query) {
-							Object.assign(
-								body,
-								jsonParse(query, { errorMessage: "Invalid JSON in 'Query' option" }),
-							);
+							const parsedQuery = jsonParse(query, { errorMessage: "Invalid JSON in 'Query' option" }) as IDataObject;
+							
+							// Only validate if the user provided a query string
+							// If the parsed query doesn't have a valid "query" field, it's an error
+							if (!parsedQuery.query || typeof parsedQuery.query !== 'object' || Object.keys(parsedQuery.query as IDataObject).length === 0) {
+								throw new NodeApiError(this.getNode(), {
+									message: 'Invalid query structure',
+									description: 'The query parameter must contain a valid "query" object. Example: {"query": {"match_all": {}}}. If you want all documents, leave the query parameter empty.',
+								} as JsonObject);
+							}
+							
+							Object.assign(body, parsedQuery);
 						}
+						// If no query is provided, body remains empty which is valid (returns all documents)
 						Object.assign(qs, rest);
 						qs._source = true;
 					}
 
 					const returnAll = this.getNodeParameter('returnAll', 0);
+					const useScroll = options.useScroll as boolean;
+					const scrollTime = options.scrollTime as number || 1;
+
+					// Determine if we need POST (complex query) or can use GET (simple or no query)
+					const hasComplexQuery = Object.keys(body).length > 0;
+					const method = hasComplexQuery ? 'POST' : 'GET';
 
 					if (returnAll) {
-						//Defines the number of hits to return. Defaults to 10. By default, you cannot page through more than 10,000 hits
-						qs.size = 10000;
-						if (qs.sort) {
-							responseData = await openSearchApiRequestAllItems.call(
+						if (useScroll) {
+							// Use scroll API for pagination
+							qs.size = 10000;
+							responseData = await openSearchApiRequestWithScroll.call(
 								this,
 								indexId as string,
 								body,
 								qs,
+								scrollTime,
 							);
 						} else {
-							responseData = await openSearchApiRequest.call(
-								this,
-								'GET',
-								`/${indexId}/_search`,
-								body,
-								qs,
-							);
-							responseData = responseData.hits.hits;
+							//Defines the number of hits to return. Defaults to 10. By default, you cannot page through more than 10,000 hits
+							qs.size = 10000;
+							if (qs.sort) {
+								responseData = await openSearchApiRequestAllItems.call(
+									this,
+									indexId as string,
+									body,
+									qs,
+								);
+							} else {
+								responseData = await openSearchApiRequest.call(
+									this,
+									method,
+									`/${indexId}/_search`,
+									hasComplexQuery ? body : {},
+									qs,
+								);
+								responseData = responseData.hits.hits;
+							}
 						}
 					} else {
 						qs.size = this.getNodeParameter('limit', 0);
 
 						responseData = await openSearchApiRequest.call(
 							this,
-							'GET',
+							method,
 							`/${indexId}/_search`,
-							body,
+							hasComplexQuery ? body : {},
 							qs,
 						);
 						responseData = responseData.hits.hits;
 					}
 
 					const simple = this.getNodeParameter('simple', 0) as IDataObject;
+
+					if (simple) {
+						responseData = responseData.map((item: IDataObject) => {
+							return {
+								_id: item._id,
+								...(item._source as IDataObject),
+							};
+						});
+					}
+				} else if (operation === 'search') {
+					// ----------------------------------------
+					//             document: search
+					// ----------------------------------------
+
+					// https://opensearch.org/docs/latest/api-reference/search-apis/search/
+
+					const indexId = this.getNodeParameter('indexId', i);
+					const queryJson = this.getNodeParameter('query', i) as string;
+
+					const body = {} as IDataObject;
+					const qs = {} as IDataObject;
+					const options = this.getNodeParameter('options', i) as DocumentSearchOptions;
+
+					// Parse the query JSON
+					try {
+						const parsedQuery = jsonParse(queryJson, { errorMessage: "Invalid JSON in 'Query' parameter" }) as IDataObject;
+						Object.assign(body, parsedQuery);
+					} catch (error) {
+						throw new NodeApiError(this.getNode(), {
+							message: 'Invalid query JSON',
+							description: 'The query parameter must be valid JSON. Example: {"query": {"match_all": {}}}',
+						} as JsonObject);
+					}
+
+					// Handle options
+					if (Object.keys(options).length) {
+						const { useScroll, scrollTime, ...rest } = options;
+						Object.assign(qs, rest);
+						qs._source = true;
+					}
+
+					const returnAll = this.getNodeParameter('returnAll', i);
+					const useScroll = options.useScroll as boolean;
+					const scrollTime = options.scrollTime as number || 1;
+
+					// Determine if we need POST (complex query) or can use GET (simple or no query)
+					const hasComplexQuery = Object.keys(body).length > 0;
+					const method = hasComplexQuery ? 'POST' : 'GET';
+
+					if (returnAll) {
+						if (useScroll) {
+							// Use scroll API for pagination
+							qs.size = 10000;
+							responseData = await openSearchApiRequestWithScroll.call(
+								this,
+								indexId as string,
+								body,
+								qs,
+								scrollTime,
+							);
+						} else {
+							// Standard pagination without scroll
+							qs.size = 10000;
+							responseData = await openSearchApiRequest.call(
+								this,
+								method,
+								`/${indexId}/_search`,
+								hasComplexQuery ? body : {},
+								qs,
+							);
+							responseData = responseData.hits.hits;
+						}
+					} else {
+						qs.size = this.getNodeParameter('limit', i);
+
+						responseData = await openSearchApiRequest.call(
+							this,
+							method,
+							`/${indexId}/_search`,
+							hasComplexQuery ? body : {},
+							qs,
+						);
+						responseData = responseData.hits.hits;
+					}
+
+					const simple = this.getNodeParameter('simple', i) as IDataObject;
 
 					if (simple) {
 						responseData = responseData.map((item: IDataObject) => {

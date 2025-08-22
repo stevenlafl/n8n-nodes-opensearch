@@ -6,6 +6,8 @@ export type OpenSearchApiCredentials = {
 };
 
 export type DocumentGetAllOptions = Partial<{
+	useScroll: boolean;
+	scrollTime: number;
 	allow_no_indices: boolean;
 	allow_partial_search_results: boolean;
 	batched_reduce_size: number;
@@ -33,6 +35,15 @@ export type DocumentGetAllOptions = Partial<{
 	track_scores: boolean;
 	track_total_hits: string;
 	version: boolean;
+}>;
+
+export type DocumentSearchOptions = Partial<{
+	useScroll: boolean;
+	scrollTime: number;
+	sort: string;
+	_source_excludes: string;
+	_source_includes: string;
+	track_total_hits: number;
 }>;
 
 export type FieldsUiValues = Array<{

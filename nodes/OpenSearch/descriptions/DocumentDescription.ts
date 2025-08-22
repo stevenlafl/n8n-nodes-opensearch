@@ -39,6 +39,12 @@ export const documentOperations: INodeProperties[] = [
 				action: 'Get many documents',
 			},
 			{
+				name: 'Search Index',
+				value: 'search',
+				description: 'Search documents in an index',
+				action: 'Search documents in an index',
+			},
+			{
 				name: 'Update',
 				value: 'update',
 				description: 'Update a document',
@@ -273,6 +279,29 @@ export const documentFields: INodeProperties[] = [
 			},
 		},
 		options: [
+			{
+				displayName: 'Use Scroll',
+				name: 'useScroll',
+				description: 'Whether to use scroll API for pagination',
+				type: 'boolean',
+				default: false,
+			},
+			{
+				displayName: 'Scroll Time (minutes)',
+				name: 'scrollTime',
+				description: 'Time in minutes to keep the scroll context alive',
+				type: 'number',
+				default: 1,
+				typeOptions: {
+					minValue: 1,
+					maxValue: 60,
+				},
+				displayOptions: {
+					show: {
+						useScroll: [true],
+					},
+				},
+			},
 			{
 				displayName: 'Allow No Indices',
 				name: 'allow_no_indices',
@@ -516,6 +545,151 @@ export const documentFields: INodeProperties[] = [
 				description: 'Whether to return document version as part of a hit. Defaults to false.',
 				type: 'boolean',
 				default: false,
+			},
+		],
+	},
+
+	// ----------------------------------------
+	//             document: search
+	// ----------------------------------------
+	{
+		displayName: 'Index ID',
+		name: 'indexId',
+		description: 'ID of the index to search in',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Query',
+		name: 'query',
+		description: 'OpenSearch query in JSON format',
+		type: 'json',
+		required: true,
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+		},
+		default: '{"query": {"match_all": {}}}',
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+			},
+		},
+		placeholder: placeholders.query,
+	},
+	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
+		type: 'number',
+		default: 50,
+		description: 'Max number of results to return',
+		typeOptions: {
+			minValue: 1,
+		},
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+				returnAll: [false],
+			},
+		},
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simple',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['search'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Use Scroll',
+				name: 'useScroll',
+				description: 'Whether to use scroll API for pagination',
+				type: 'boolean',
+				default: false,
+			},
+			{
+				displayName: 'Scroll Time (minutes)',
+				name: 'scrollTime',
+				description: 'Time in minutes to keep the scroll context alive',
+				type: 'number',
+				default: 1,
+				typeOptions: {
+					minValue: 1,
+					maxValue: 60,
+				},
+				displayOptions: {
+					show: {
+						useScroll: [true],
+					},
+				},
+			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				description: 'Comma-separated list of field:direction pairs',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Source Excludes',
+				name: '_source_excludes',
+				description: 'Comma-separated list of source fields to exclude from the response',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Source Includes',
+				name: '_source_includes',
+				description: 'Comma-separated list of source fields to include in the response',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Track Total Hits',
+				name: 'track_total_hits',
+				description: 'Number of hits matching the query to count accurately. Defaults to 10000.',
+				type: 'number',
+				default: 10000,
 			},
 		],
 	},

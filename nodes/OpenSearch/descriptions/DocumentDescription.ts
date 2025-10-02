@@ -280,163 +280,115 @@ export const documentFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Use Scroll',
-				name: 'useScroll',
-				description: 'Whether to use scroll API for pagination',
-				type: 'boolean',
-				default: false,
-			},
-			{
-				displayName: 'Scroll Time (minutes)',
-				name: 'scrollTime',
-				description: 'Time in minutes to keep the scroll context alive',
-				type: 'number',
-				default: 1,
-				typeOptions: {
-					minValue: 1,
-					maxValue: 60,
-				},
-				displayOptions: {
-					show: {
-						useScroll: [true],
-					},
-				},
-			},
-			{
 				displayName: 'Allow No Indices',
 				name: 'allow_no_indices',
-				// eslint-disable-next-line n8n-nodes-base/node-param-description-boolean-without-whether
-				description:
-					'If false, return an error if any of the following targets only missing/closed indices: wildcard expression, index alias, or <code>_all</code> value. Defaults to true.',
+				description: 'Whether to return an error if any of the following targets only missing/closed indices: wildcard expression, index alias, or <code>_all</code> value. Defaults to true.',
 				type: 'boolean',
 				default: true,
 			},
 			{
 				displayName: 'Allow Partial Search Results',
 				name: 'allow_partial_search_results',
-				// eslint-disable-next-line n8n-nodes-base/node-param-description-boolean-without-whether
-				description:
-					'<p>If true, return partial results if there are shard request timeouts or shard failures.</p><p>If false, returns an error with no partial results. Defaults to true.</p>.',
+				description: 'Whether to return partial results if there are shard request timeouts or shard failures. If false, returns an error with no partial results. Defaults to true.',
 				type: 'boolean',
 				default: true,
 			},
 			{
 				displayName: 'Batched Reduce Size',
 				name: 'batched_reduce_size',
-				description:
-					'Number of shard results that should be reduced at once on the coordinating node. Defaults to 512.',
+				description: 'Number of shard results that should be reduced at once on the coordinating node. Defaults to 512.',
 				type: 'number',
-				typeOptions: {
-					minValue: 2,
-				},
 				default: 512,
 			},
 			{
 				displayName: 'CCS Minimize Roundtrips',
 				name: 'ccs_minimize_roundtrips',
-				description:
-					'Whether network round-trips between the coordinating node and the remote clusters are minimized when executing cross-cluster search (CCS) requests. Defaults to true.',
+				description: 'Whether network round-trips between the coordinating node and the remote clusters are minimized when executing cross-cluster search (CCS) requests. Defaults to true.',
 				type: 'boolean',
 				default: true,
 			},
 			{
 				displayName: 'Doc Value Fields',
 				name: 'docvalue_fields',
-				description:
-					'Comma-separated list of fields to return as the docvalue representation of a field for each hit',
+				description: 'Comma-separated list of fields to return as the docvalue representation of a field for each hit',
 				type: 'string',
 				default: '',
 			},
 			{
 				displayName: 'Expand Wildcards',
 				name: 'expand_wildcards',
-				description:
-					'Type of index that wildcard expressions can match. Defaults to <code>open</code>',
+				description: 'Type of index that wildcard expressions can match. Defaults to <code>open</code>',
 				type: 'options',
 				options: [
-					{
-						name: 'All',
-						value: 'all',
-					},
-					{
-						name: 'Closed',
-						value: 'closed',
-					},
-					{
-						name: 'Hidden',
-						value: 'hidden',
-					},
-					{
-						name: 'None',
-						value: 'none',
-					},
-					{
-						name: 'Open',
-						value: 'open',
-					},
+							{
+								name: 'All',
+								value: 'all',
+							},
+							{
+								name: 'Closed',
+								value: 'closed',
+							},
+							{
+								name: 'Hidden',
+								value: 'hidden',
+							},
+							{
+								name: 'None',
+								value: 'none',
+							},
+							{
+								name: 'Open',
+								value: 'open',
+							},
 				],
 				default: 'open',
 			},
 			{
 				displayName: 'Explain',
 				name: 'explain',
-				description:
-					'Whether to return detailed information about score computation as part of a hit. Defaults to false.',
+				description: 'Whether to return detailed information about score computation as part of a hit. Defaults to false.',
 				type: 'boolean',
 				default: false,
 			},
 			{
 				displayName: 'Ignore Throttled',
 				name: 'ignore_throttled',
-				description:
-					'Whether concrete, expanded or aliased indices are ignored when frozen. Defaults to true.',
+				description: 'Whether concrete, expanded or aliased indices are ignored when frozen. Defaults to true.',
 				type: 'boolean',
 				default: true,
 			},
 			{
 				displayName: 'Ignore Unavailable',
 				name: 'ignore_unavailable',
-				description:
-					'Whether missing or closed indices are not included in the response. Defaults to false.',
+				description: 'Whether missing or closed indices are not included in the response. Defaults to false.',
 				type: 'boolean',
 				default: false,
 			},
 			{
 				displayName: 'Max Concurrent Shard Requests',
 				name: 'max_concurrent_shard_requests',
-				description:
-					'Define the number of shard requests per node this search executes concurrently. Defaults to 5.',
+				description: 'Define the number of shard requests per node this search executes concurrently. Defaults to 5.',
 				type: 'number',
 				default: 5,
 			},
 			{
 				displayName: 'Pre-Filter Shard Size',
 				name: 'pre_filter_shard_size',
-				description:
-					'Define a threshold that enforces a pre-filter roundtrip to prefilter search shards based on query rewriting. Only used if the number of shards the search request expands to exceeds the threshold.',
+				description: 'Define a threshold that enforces a pre-filter roundtrip to prefilter search shards based on query rewriting. Only used if the number of shards the search request expands to exceeds the threshold.',
 				type: 'number',
-				typeOptions: {
-					minValue: 1,
-				},
 				default: 1,
 			},
 			{
 				displayName: 'Query',
 				name: 'query',
-				description:
-					'Query in the <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html">Elasticsearch Query DSL</a>',
+				description: 'Query in the <a href=\'https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html\'>Elasticsearch Query DSL</a>',
 				type: 'json',
-				typeOptions: {
-					alwaysOpenEditWindow: true,
-				},
 				default: '',
-				placeholder: placeholders.query,
 			},
 			{
 				displayName: 'Request Cache',
 				name: 'request_cache',
-				description:
-					'Whether the caching of search results is enabled for requests where size is 0. See <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/shard-request-cache.html">Elasticsearch shard request cache settings</a>.',
+				description: 'Whether the caching of search results is enabled for requests where size is 0. See <a href=\'https://www.elastic.co/guide/en/elasticsearch/reference/current/shard-request-cache.html\'>Elasticsearch shard request cache settings</a>.',
 				type: 'boolean',
 				default: false,
 			},
@@ -448,28 +400,33 @@ export const documentFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'Scroll Time (Minutes)',
+				name: 'scrollTime',
+				description: 'Time in minutes to keep the scroll context alive',
+				type: 'number',
+				default: 1,
+			},
+			{
 				displayName: 'Search Type',
 				name: 'search_type',
-				description:
-					'How distributed term frequencies are calculated for relevance scoring. Defaults to Query then Fetch.',
+				description: 'How distributed term frequencies are calculated for relevance scoring. Defaults to Query then Fetch.',
 				type: 'options',
 				options: [
-					{
-						name: 'DFS Query Then Fetch',
-						value: 'dfs_query_then_fetch',
-					},
-					{
-						name: 'Query Then Fetch',
-						value: 'query_then_fetch',
-					},
+							{
+								name: 'DFS Query Then Fetch',
+								value: 'dfs_query_then_fetch',
+							},
+							{
+								name: 'Query Then Fetch',
+								value: 'query_then_fetch',
+							},
 				],
 				default: 'query_then_fetch',
 			},
 			{
 				displayName: 'Sequence Number and Primary Term',
 				name: 'seq_no_primary_term',
-				description:
-					'Whether to return the sequence number and primary term of the last modification of each hit. See <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/optimistic-concurrency-control.html">Optimistic concurrency control</a>.',
+				description: 'Whether to return the sequence number and primary term of the last modification of each hit. See <a href=\'https://www.elastic.co/guide/en/elasticsearch/reference/current/optimistic-concurrency-control.html\'>Optimistic concurrency control</a>.',
 				type: 'boolean',
 				default: false,
 			},
@@ -504,8 +461,7 @@ export const documentFields: INodeProperties[] = [
 			{
 				displayName: 'Stored Fields',
 				name: 'stored_fields',
-				description:
-					'Whether to retrieve the document fields stored in the index rather than the document <code>_source</code>. Defaults to false.',
+				description: 'Whether to retrieve the document fields stored in the index rather than the document <code>_source</code>. Defaults to false.',
 				type: 'boolean',
 				default: false,
 			},
@@ -519,16 +475,14 @@ export const documentFields: INodeProperties[] = [
 			{
 				displayName: 'Timeout',
 				name: 'timeout',
-				description:
-					'Period to wait for active shards. Defaults to <code>1m</code> (one minute). See the <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units">Elasticsearch time units reference</a>',
+				description: 'Period to wait for active shards. Defaults to <code>1m</code> (one minute). See the <a href=\'https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units\'>Elasticsearch time units reference</a>',
 				type: 'string',
 				default: '1m',
 			},
 			{
 				displayName: 'Track Scores',
 				name: 'track_scores',
-				description:
-					'Whether to calculate and return document scores, even if the scores are not used for sorting. Defaults to false.',
+				description: 'Whether to calculate and return document scores, even if the scores are not used for sorting. Defaults to false.',
 				type: 'boolean',
 				default: false,
 			},
@@ -538,6 +492,13 @@ export const documentFields: INodeProperties[] = [
 				description: 'Number of hits matching the query to count accurately. Defaults to 10000.',
 				type: 'number',
 				default: 10000,
+			},
+			{
+				displayName: 'Use Scroll',
+				name: 'useScroll',
+				description: 'Whether to use scroll API for pagination',
+				type: 'boolean',
+				default: false,
 			},
 			{
 				displayName: 'Version',
@@ -641,27 +602,11 @@ export const documentFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Use Scroll',
-				name: 'useScroll',
-				description: 'Whether to use scroll API for pagination',
-				type: 'boolean',
-				default: false,
-			},
-			{
-				displayName: 'Scroll Time (minutes)',
+				displayName: 'Scroll Time (Minutes)',
 				name: 'scrollTime',
 				description: 'Time in minutes to keep the scroll context alive',
 				type: 'number',
 				default: 1,
-				typeOptions: {
-					minValue: 1,
-					maxValue: 60,
-				},
-				displayOptions: {
-					show: {
-						useScroll: [true],
-					},
-				},
 			},
 			{
 				displayName: 'Sort',
@@ -690,6 +635,13 @@ export const documentFields: INodeProperties[] = [
 				description: 'Number of hits matching the query to count accurately. Defaults to 10000.',
 				type: 'number',
 				default: 10000,
+			},
+			{
+				displayName: 'Use Scroll',
+				name: 'useScroll',
+				description: 'Whether to use scroll API for pagination',
+				type: 'boolean',
+				default: false,
 			},
 		],
 	},

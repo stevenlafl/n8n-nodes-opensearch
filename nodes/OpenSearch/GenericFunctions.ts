@@ -119,7 +119,8 @@ export async function openSearchApiRequestAllItems(
 			track_total_hits: false, //Disable the tracking of total hits to speed up pagination
 		};
 
-		responseData = await openSearchApiRequest.call(this, 'GET', '/_search', requestBody, qs);
+		// Always use POST for PIT searches as they require a body
+		responseData = await openSearchApiRequest.call(this, 'POST', '/_search', requestBody, qs);
 		if (responseData?.hits?.hits) {
 			returnData = returnData.concat(responseData.hits.hits as IDataObject[]);
 			const lastHitIndex = responseData.hits.hits.length - 1;
@@ -135,7 +136,7 @@ export async function openSearchApiRequestAllItems(
 			requestBody.search_after = searchAfter;
 			requestBody.pit = { id: pit, keep_alive: '1m' };
 
-			responseData = await openSearchApiRequest.call(this, 'GET', '/_search', requestBody, qs);
+			responseData = await openSearchApiRequest.call(this, 'POST', '/_search', requestBody, qs);
 
 			if (responseData?.hits?.hits?.length) {
 				returnData = returnData.concat(responseData.hits.hits as IDataObject[]);
@@ -148,6 +149,69 @@ export async function openSearchApiRequestAllItems(
 		}
 
 		await openSearchApiRequest.call(this, 'DELETE', '/_pit', { id: pit });
+
+		return returnData;
+	} catch (error) {
+		throw new NodeApiError(this.getNode(), error as JsonObject);
+	}
+}
+
+export async function openSearchApiRequestWithScroll(
+	this: IExecuteFunctions,
+	indexId: string,
+	body: IDataObject = {},
+	qs: IDataObject = {},
+	scrollTime: number = 1,
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+): Promise<any> {
+	try {
+		let returnData: IDataObject[] = [];
+		// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+		let responseData;
+		let scrollId: string | undefined;
+
+		// Initial search request with scroll
+		const scrollTimeString = `${scrollTime}m`;
+		const initialQs = { ...qs, scroll: scrollTimeString };
+
+		// Determine if we need POST (complex query) or can use GET (simple or no query)
+		const hasComplexQuery = Object.keys(body).length > 0;
+		const method = hasComplexQuery ? 'POST' : 'GET';
+
+		responseData = await openSearchApiRequest.call(this, method, `/${indexId}/_search`, hasComplexQuery ? body : {}, initialQs);
+		
+		if (responseData?.hits?.hits) {
+			returnData = returnData.concat(responseData.hits.hits as IDataObject[]);
+			scrollId = responseData._scroll_id;
+		} else {
+			return [];
+		}
+
+		// Continue scrolling until no more results
+		while (scrollId && responseData?.hits?.hits?.length > 0) {
+			const scrollBody = {
+				scroll: scrollTimeString,
+				scroll_id: scrollId,
+			};
+
+			responseData = await openSearchApiRequest.call(this, 'GET', '/_search/scroll', scrollBody);
+
+			if (responseData?.hits?.hits?.length > 0) {
+				returnData = returnData.concat(responseData.hits.hits as IDataObject[]);
+				scrollId = responseData._scroll_id;
+			} else {
+				break;
+			}
+		}
+
+		// Clear scroll context
+		if (scrollId) {
+			try {
+				await openSearchApiRequest.call(this, 'DELETE', '/_search/scroll', { scroll_id: scrollId });
+			} catch (error) {
+				// Ignore cleanup errors
+			}
+		}
 
 		return returnData;
 	} catch (error) {

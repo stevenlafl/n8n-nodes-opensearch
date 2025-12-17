@@ -16,7 +16,7 @@ import { BaseChatMemory } from '@langchain/community/memory/chat_memory';
 import { BaseRetriever } from '@langchain/core/retrievers';
 import { BaseOutputParser, OutputParserException } from '@langchain/core/output_parsers';
 import { isObject } from 'lodash';
-import type { BaseDocumentLoader } from 'langchain/dist/document_loaders/base';
+import type { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { N8nJsonLoader } from './N8nJsonLoader';
 import { N8nBinaryLoader } from './N8nBinaryLoader';
 import { logAiEvent } from './helpers';
@@ -274,7 +274,7 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: unknown[]) => Promise<unknown>,
 							arguments: [query, config],
 						})) as Array<Document<Record<string, any>>>;
 

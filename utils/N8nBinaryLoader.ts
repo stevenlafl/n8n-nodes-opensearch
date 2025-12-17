@@ -8,9 +8,9 @@ import type { TextSplitter } from '@langchain/textsplitters';
 import type { Document } from '@langchain/core/documents';
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv';
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
-import { JSONLoader } from '@langchain/community/document_loaders/fs/json';
+import { JSONLoader } from '@langchain/classic/document_loaders/fs/json';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
-import { TextLoader } from '@langchain/community/document_loaders/fs/text';
+import { TextLoader } from '@langchain/classic/document_loaders/fs/text';
 import { EPubLoader } from '@langchain/community/document_loaders/fs/epub';
 import { file as tmpFile, type DirectoryResult } from 'tmp-promise';
 

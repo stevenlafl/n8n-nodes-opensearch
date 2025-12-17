@@ -46,15 +46,10 @@ You will need a baseURL and a username and password to authenticate to the OpenS
 
 ## Compatibility
 
-Supports n8n 1.48.0+, tested with 1.62.1
+n8n-nodes-opensearch @0.1.4 - Supports n8n 1.48.0+, tested with 1.62.1
+n8n-nodes-opensearch @0.2.0 - Supports n8n 2.1.0+
 
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
 * [OpenSearch Langchain documentation](https://js.langchain.com/docs/integrations/vectorstores/opensearch/)
-
-## Version history
-
-0.1.0 - First working version, no documentation
-
-

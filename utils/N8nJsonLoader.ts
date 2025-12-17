@@ -3,8 +3,8 @@ import { type IExecuteFunctions, type INodeExecutionData, NodeOperationError } f
 
 import type { TextSplitter } from '@langchain/textsplitters';
 import type { Document } from '@langchain/core/documents';
-import { JSONLoader } from 'langchain/document_loaders/fs/json';
-import { TextLoader } from 'langchain/document_loaders/fs/text';
+import { JSONLoader } from '@langchain/community/document_loaders/fs/json';
+import { TextLoader } from '@langchain/community/document_loaders/fs/text';
 import { getMetadataFiltersValues } from './helpers';
 
 export class N8nJsonLoader {

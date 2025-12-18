@@ -4,6 +4,12 @@
 module.exports = {
 	extends: "./.eslintrc.js",
 
+	ignorePatterns: [
+		'**/*.test.ts',
+		'**/__tests__/**',
+		'tests/**',
+	],
+
 	overrides: [
 		{
 			files: ['package.json'],

@@ -110,6 +110,7 @@ export const createVectorStoreNode = <T extends VectorStore = VectorStore>(
 					name: 'mode',
 					type: 'options',
 					noDataExpression: true,
+					// eslint-disable-next-line n8n-nodes-base/node-param-default-wrong-for-options
 					default: 'retrieve',
 					options: getOperationModeOptions(args),
 				},

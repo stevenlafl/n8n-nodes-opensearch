@@ -71,13 +71,6 @@ export const indexFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Skip If Exists',
-				name: 'skipIfExists',
-				description: 'Whether to skip creation without error if the index already exists',
-				type: 'boolean',
-				default: false,
-			},
-			{
 				displayName: 'Aliases',
 				name: 'aliases',
 				description:
@@ -128,6 +121,13 @@ export const indexFields: INodeProperties[] = [
 				},
 				default: '',
 				placeholder: placeholders.indexSettings,
+			},
+			{
+				displayName: 'Skip If Exists',
+				name: 'skipIfExists',
+				description: 'Whether to skip creation without error if the index already exists',
+				type: 'boolean',
+				default: false,
 			},
 			{
 				displayName: 'Timeout',

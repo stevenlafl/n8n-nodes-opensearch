@@ -36,12 +36,11 @@ export class OpenSearch implements INodeType {
 		},
 		usableAsTool: true,
 		codex: {
-			categories: ['Data & Storage', 'AI'],
+			categories: ['Data & Storage'],
 			subcategories: {
 				'Data & Storage': ['Search'],
-				AI: ['Tools'],
 			},
-			alias: ['elastic', 'search', 'elasticsearch'],
+			alias: ['elastic', 'search', 'elasticsearch', 'opensearch'],
 			resources: {
 				primaryDocumentation: [
 					{

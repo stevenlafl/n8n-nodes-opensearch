@@ -8,16 +8,16 @@ importers:
 
   .:
     dependencies:
+      '@opensearch-project/opensearch':
+        specifier: ^2.12.0
+        version: 2.12.0
+    devDependencies:
       '@langchain/classic':
         specifier: ^1.0.5
         version: 1.0.6(@langchain/core@1.1.6(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(cheerio@1.0.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76))(ws@8.18.3)
       '@langchain/community':
         specifier: ^1.0.5
         version: 1.1.0(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.954.0)(@aws-sdk/credential-provider-node@3.954.0)(@azure/search-documents@12.1.0)(@azure/storage-blob@12.26.0)(@browserbasehq/sdk@2.6.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.54.0)(deepmerge@4.3.1)(dotenv@16.6.1)(encoding@0.1.13)(openai@6.14.0(ws@8.18.3)(zod@3.25.76))(zod@3.25.76))(@getzep/zep-cloud@1.0.6(@langchain/core@1.1.6(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76)))(encoding@0.1.13)(langchain@1.2.1(@langchain/core@1.1.6(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76))(zod-to-json-schema@3.25.0(zod@3.25.76))))(@getzep/zep-js@0.9.0)(@google-cloud/storage@7.18.0(encoding@0.1.13))(@huggingface/inference@4.0.5)(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/core@1.1.6(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76)))(@mozilla/readability@0.6.0)(@opensearch-project/opensearch@2.12.0)(@opentelemetry/api@1.9.0)(@smithy/util-utf8@2.3.0)(@supabase/supabase-js@2.49.9)(@xata.io/client@0.28.4(typescript@5.9.3))(@zilliz/milvus2-sdk-node@2.6.5)(cheerio@1.0.0)(d3-dsv@2.0.0)(epub2@3.0.2)(fast-xml-parser@5.3.3)(google-auth-library@10.5.0)(html-to-text@9.0.5)(ibm-cloud-sdk-core@5.4.0)(ignore@5.3.2)(jsdom@23.0.1)(jsonwebtoken@9.0.3)(lodash@4.17.21)(mammoth@1.11.0)(mysql2@3.15.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76))(pdf-parse@1.1.1)(pg@8.12.0)(playwright@1.54.0)(ws@8.18.3)
-      '@opensearch-project/opensearch':
-        specifier: ^2.12.0
-        version: 2.12.0
-    devDependencies:
       '@langchain/core':
         specifier: ^1.1.0
         version: 1.1.6(@opentelemetry/api@1.9.0)(openai@6.14.0(ws@8.18.3)(zod@3.25.76))

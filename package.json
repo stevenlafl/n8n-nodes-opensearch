@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-opensearch",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Adds OpenSearch vector store and generic nodes to n8n",
   "keywords": [
     "n8n-community-node-package"
@@ -49,11 +49,11 @@
     ]
   },
   "dependencies": {
-    "@langchain/classic": "^1.0.5",
-    "@langchain/community": "^1.0.5",
     "@opensearch-project/opensearch": "^2.12.0"
   },
   "devDependencies": {
+    "@langchain/classic": "^1.0.5",
+    "@langchain/community": "^1.0.5",
     "@langchain/core": "^1.1.0",
     "@langchain/openai": "^1.2.0",
     "@langchain/textsplitters": "^1.0.1",
@@ -76,7 +76,8 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
+    "@langchain/community": ">=0.3.0",
     "@langchain/core": ">=0.3.0",
-    "n8n-workflow": ">=2.1.0"
+    "n8n-workflow": ">=1.0.0"
   }
 }

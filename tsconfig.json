@@ -16,6 +16,7 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"incremental": true,
+		"tsBuildInfoFile": ".tsbuildinfo",
 		"declaration": true,
 		"sourceMap": true,
 		"skipLibCheck": true,
@@ -29,4 +30,11 @@
 		"types/**/*",
 		"package.json",
 	],
+	"exclude": [
+		"**/*.test.ts",
+		"**/__tests__/**",
+		"tests/**",
+		"node_modules",
+		"dist"
+	]
 }

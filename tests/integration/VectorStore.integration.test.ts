@@ -11,6 +11,7 @@
  * 3. Run tests: pnpm test:integration
  *
  * The tests will automatically run against all available OpenSearch versions.
+ * Unavailable versions are skipped entirely.
  */
 
 import { mock } from 'jest-mock-extended';
@@ -26,60 +27,12 @@ import { Client } from '@opensearch-project/opensearch';
 import type { Embeddings } from '@langchain/core/embeddings';
 
 import { VectorStoreOpenSearch } from '../../nodes/vector_store/VectorStoreOpenSearch/VectorStoreOpenSearch.node';
+import { OPENSEARCH_CONFIG, isInstanceAvailable, getInstanceUrl } from './config';
 
-const OPENSEARCH_USERNAME = 'admin';
-const OPENSEARCH_PASSWORD = 'MyStr0ng#Pass!2024';
 const VECTOR_DIMENSION = 384; // Dimension for our mock embeddings
 
-// Define OpenSearch instances to test against
-interface OpenSearchInstance {
-	name: string;
-	url: string;
-	version: string;
-}
-
-// Check which OpenSearch instances are available
-async function getAvailableInstances(): Promise<OpenSearchInstance[]> {
-	const instances: OpenSearchInstance[] = [];
-	const candidates = [
-		{ name: 'OpenSearch 3.x', url: 'https://localhost:9200', version: '3.x' },
-		{ name: 'OpenSearch 2.x', url: 'https://localhost:9201', version: '2.x' },
-	];
-
-	for (const candidate of candidates) {
-		try {
-			const client = new Client({
-				node: candidate.url,
-				auth: { username: OPENSEARCH_USERNAME, password: OPENSEARCH_PASSWORD },
-				ssl: { rejectUnauthorized: false },
-			});
-			await client.cluster.health({ timeout: '5s' });
-			await client.close();
-			instances.push(candidate);
-		} catch {
-			// Instance not available, skip it
-		}
-	}
-
-	if (instances.length === 0) {
-		throw new Error(
-			'No OpenSearch instances available. Please start at least one with:\n' +
-			'  docker compose -f docker-compose.test.yml --profile v3 up -d  (for 3.x)\n' +
-			'  docker compose -f docker-compose.test.yml --profile v2 up -d  (for 2.x)\n' +
-			'  docker compose -f docker-compose.test.yml --profile os-both up -d  (for both)'
-		);
-	}
-
-	return instances;
-}
-
-// Get available instances before running tests
-let availableInstances: OpenSearchInstance[] = [];
-
-beforeAll(async () => {
-	availableInstances = await getAvailableInstances();
-	console.log(`VectorStore tests against: ${availableInstances.map(i => i.name).join(', ')}`);
-}, 30000);
+// Conditional describe - skip entire suite if instance unavailable
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
 
 /**
  * Create mock embeddings that return consistent vectors
@@ -110,90 +63,74 @@ function createMockEmbeddings(): Embeddings {
 	return mockEmbeddings;
 }
 
-describe.each([
-	['OpenSearch 3.x', 'https://localhost:9200', '3.x'],
-	['OpenSearch 2.x', 'https://localhost:9201', '2.x'],
-])('%s VectorStore Integration Tests', (instanceName, instanceUrl, instanceVersion) => {
-	let client: Client;
-	let nodeInstance: VectorStoreOpenSearch;
-	let mockEmbeddings: Embeddings;
-	let testCredentials: ICredentialDataDecryptedObject;
-	let instanceAvailable = false;
-	const TEST_INDEX = `vector-integration-test-${instanceVersion.replace('.', '-')}`;
+// Helper to create test suite for a specific OpenSearch version
+function createVectorStoreTestSuite(
+	instanceName: string,
+	instanceUrl: string,
+	instanceVersion: string,
+	isAvailable: boolean
+) {
+	describeIf(isAvailable)(`${instanceName} VectorStore Integration Tests`, () => {
+		let client: Client;
+		let nodeInstance: VectorStoreOpenSearch;
+		let mockEmbeddings: Embeddings;
+		let testCredentials: ICredentialDataDecryptedObject;
+		const TEST_INDEX = `vector-integration-test-${instanceVersion.replace('.', '-')}`;
 
-	beforeAll(async () => {
-		// Check if this instance is available
-		instanceAvailable = availableInstances.some(i => i.url === instanceUrl);
-		if (!instanceAvailable) {
-			console.log(`⏭️  Skipping ${instanceName} - not available`);
-			return;
-		}
+		beforeAll(async () => {
+			nodeInstance = new VectorStoreOpenSearch();
+			mockEmbeddings = createMockEmbeddings();
+			testCredentials = {
+				baseUrl: instanceUrl,
+				username: OPENSEARCH_CONFIG.username,
+				password: OPENSEARCH_CONFIG.password,
+				ignoreSSLIssues: true,
+			};
 
-		nodeInstance = new VectorStoreOpenSearch();
-		mockEmbeddings = createMockEmbeddings();
-		testCredentials = {
-			baseUrl: instanceUrl,
-			username: OPENSEARCH_USERNAME,
-			password: OPENSEARCH_PASSWORD,
-			ignoreSSLIssues: true,
-		};
+			client = new Client({
+				node: instanceUrl,
+				auth: {
+					username: OPENSEARCH_CONFIG.username,
+					password: OPENSEARCH_CONFIG.password,
+				},
+				ssl: {
+					rejectUnauthorized: false,
+				},
+			});
 
-		// Create real client for setup/teardown and health checks
-		client = new Client({
-			node: instanceUrl,
-			auth: {
-				username: OPENSEARCH_USERNAME,
-				password: OPENSEARCH_PASSWORD,
-			},
-			ssl: {
-				rejectUnauthorized: false,
-			},
-		});
-
-		// Wait for OpenSearch to be ready
-		let retries = 30;
-		while (retries > 0) {
-			try {
-				await client.cluster.health({});
-				break;
-			} catch {
-				retries--;
-				if (retries === 0) {
-					throw new Error(`${instanceName} is not available at ${instanceUrl}`);
+			// Wait for OpenSearch to be ready
+			let retries = 30;
+			while (retries > 0) {
+				try {
+					await client.cluster.health({});
+					break;
+				} catch {
+					retries--;
+					if (retries === 0) {
+						throw new Error(`${instanceName} is not available at ${instanceUrl}`);
+					}
+					await new Promise((resolve) => setTimeout(resolve, 1000));
 				}
-				await new Promise((resolve) => setTimeout(resolve, 1000));
 			}
-		}
 
-		// Clean up any leftover test index
-		try {
-			await client.indices.delete({ index: TEST_INDEX });
-		} catch {
-			// Index might not exist
-		}
-	}, 60000);
-
-	afterAll(async () => {
-		if (!client) return;
-
-		// Cleanup test indices
-		try {
-			await client.indices.delete({ index: TEST_INDEX });
-		} catch {
-			// Index might not exist
-		}
-		await client.close();
-	});
-
-	// Wrapper for it() that skips if instance unavailable
-	const testIf = (name: string, fn: () => Promise<void>) => {
-		it(name, async () => {
-			if (!instanceAvailable) {
-				return; // Skip silently
+			// Clean up any leftover test index
+			try {
+				await client.indices.delete({ index: TEST_INDEX });
+			} catch {
+				// Index might not exist
 			}
-			await fn();
+		}, 60000);
+
+		afterAll(async () => {
+			if (!client) return;
+
+			try {
+				await client.indices.delete({ index: TEST_INDEX });
+			} catch {
+				// Index might not exist
+			}
+			await client.close();
 		});
-	};
 
 	/**
 	 * Helper to create a mocked ISupplyDataFunctions context
@@ -315,7 +252,7 @@ describe.each([
 	}
 
 	describe('Insert Mode', () => {
-		testIf('should insert documents into OpenSearch vector store', async () => {
+		it('should insert documents into OpenSearch vector store', async () => {
 			const params = {
 				indexName: TEST_INDEX,
 				engine: 'lucene',
@@ -348,7 +285,7 @@ describe.each([
 	});
 
 	describe('Retrieve Mode', () => {
-		testIf('should retrieve vector store client for use with AI nodes', async () => {
+		it('should retrieve vector store client for use with AI nodes', async () => {
 			const params = {
 				indexName: TEST_INDEX,
 				engine: 'lucene',
@@ -377,7 +314,7 @@ describe.each([
 			}
 		});
 
-		testIf('should perform similarity search on retrieved vector store', async () => {
+		it('should perform similarity search on retrieved vector store', async () => {
 			const params = {
 				indexName: TEST_INDEX,
 				engine: 'lucene',
@@ -419,7 +356,7 @@ describe.each([
 	});
 
 	describe('Load Mode (Similarity Search)', () => {
-		testIf('should search and return similar documents', async () => {
+		it('should search and return similar documents', async () => {
 			const params = {
 				indexName: TEST_INDEX,
 				engine: 'lucene',
@@ -466,7 +403,7 @@ describe.each([
 			testDocId = response.body._id;
 		});
 
-		testIf('should update a document by ID', async () => {
+		it('should update a document by ID', async () => {
 			const params = {
 				indexName: TEST_INDEX,
 				engine: 'lucene',
@@ -509,7 +446,7 @@ describe.each([
 	});
 
 	describe('Delete Functionality', () => {
-		testIf('should add replacement document during update operation', async () => {
+		it('should add replacement document during update operation', async () => {
 			// Create a unique document ID for this test
 			const docId = `delete-test-${Date.now()}`;
 
@@ -571,7 +508,7 @@ describe.each([
 	});
 
 	describe('Engine Configuration', () => {
-		testIf('should use lucene engine successfully', async () => {
+		it('should use lucene engine successfully', async () => {
 			const tempIndex = 'engine-test-lucene';
 
 			const params = {
@@ -610,7 +547,7 @@ describe.each([
 			await client.indices.delete({ index: tempIndex });
 		});
 
-		testIf('should handle nmslib engine based on OpenSearch version', async () => {
+		it('should handle nmslib engine based on OpenSearch version', async () => {
 			const tempIndex = 'engine-test-nmslib';
 
 			// Clean up any leftover index first
@@ -666,7 +603,7 @@ describe.each([
 	});
 
 	describe('Error Handling', () => {
-		testIf('should handle connection errors gracefully', async () => {
+		it('should handle connection errors gracefully', async () => {
 			const badCredentials: ICredentialDataDecryptedObject = {
 				baseUrl: 'http://nonexistent-host:9200',
 				username: '',
@@ -697,4 +634,10 @@ describe.each([
 			}
 		});
 	});
-});
+
+	}); // end describeIf
+} // end createVectorStoreTestSuite
+
+// Create test suites for available OpenSearch versions
+createVectorStoreTestSuite('OpenSearch 3.x', getInstanceUrl('3.x'), '3.x', isInstanceAvailable('3.x'));
+createVectorStoreTestSuite('OpenSearch 2.x', getInstanceUrl('2.x'), '2.x', isInstanceAvailable('2.x'));

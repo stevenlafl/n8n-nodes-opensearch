@@ -24,6 +24,7 @@ const config: Config = {
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/$1',
 	},
+	globalSetup: '<rootDir>/tests/globalSetup.ts',
 	setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 	testTimeout: 30000,
 	verbose: true,

@@ -1,0 +1,7 @@
+
+> n8n-nodes-opensearch@0.2.0 build /home/stevenlafl/Projects/n8n-nodes-opensearch
+> tsc && gulp build:icons
+
+[15:17:06] Using gulpfile ~/Projects/n8n-nodes-opensearch/gulpfile.js
+[15:17:06] Starting 'build:icons'...
+[15:17:06] Finished 'build:icons' after 9.58 ms

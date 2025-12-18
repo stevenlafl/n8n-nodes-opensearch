@@ -9,19 +9,25 @@ import { NodeApiError } from 'n8n-workflow';
 
 import type { OpenSearchApiCredentials } from './types';
 
+/**
+ * Executes a bulk API request to OpenSearch
+ * @param body - Object containing bulk operations, each value will be joined with newlines
+ * @returns Array of operation results for each item in the bulk request
+ */
 export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: IDataObject) {
 	const { baseUrl, ignoreSSLIssues } = (await this.getCredentials(
 		'openSearchApi',
 	)) as OpenSearchApiCredentials;
 
-	// biome-ignore lint/style/useTemplate: <explanation>
-	const bulkBody = Object.values(body).flat().join('\n') + '\n';
+	const normalizedUrl = baseUrl.replace(/\/$/, '');
+
+	const bulkBody = `${Object.values(body).flat().join('\n')}\n`;
 
 	const options: IHttpRequestOptions = {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/x-ndjson' },
 		body: bulkBody,
-		url: `${baseUrl}/_bulk`,
+		url: `${normalizedUrl}/_bulk`,
 		skipSslCertificateValidation: ignoreSSLIssues,
 		returnFullResponse: true,
 		ignoreHttpStatusErrors: true,
@@ -36,10 +42,8 @@ export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: ID
 	if (response.statusCode > 299) {
 		if (this.continueOnFail()) {
 			return Object.values(body).map((_) => ({ error: response.body.error }));
-		// biome-ignore lint/style/noUselessElse: <explanation>
-		} else {
-			throw new NodeApiError(this.getNode(), { error: response.body.error } as JsonObject);
 		}
+		throw new NodeApiError(this.getNode(), { error: response.body.error } as JsonObject);
 	}
 
 	return response.body.items.map((item: IDataObject) => {
@@ -53,6 +57,14 @@ export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: ID
 	});
 }
 
+/**
+ * Executes a single API request to OpenSearch
+ * @param method - HTTP method (GET, POST, PUT, DELETE, HEAD)
+ * @param endpoint - API endpoint path (e.g., '/index/_doc/1')
+ * @param body - Request body data
+ * @param qs - Query string parameters
+ * @returns Response data from OpenSearch
+ */
 export async function openSearchApiRequest(
 	this: IExecuteFunctions,
 	method: IHttpRequestMethods,
@@ -64,39 +76,48 @@ export async function openSearchApiRequest(
 		'openSearchApi',
 	)) as OpenSearchApiCredentials;
 
+	const normalizedUrl = baseUrl.replace(/\/$/, '');
+
 	const options: IHttpRequestOptions = {
 		method,
-		body,
-		qs,
-		url: `${baseUrl}${endpoint}`,
-		json: true,
+		url: `${normalizedUrl}${endpoint}`,
+		json: method !== 'HEAD', // HEAD requests don't return a body, so disable JSON parsing
 		skipSslCertificateValidation: ignoreSSLIssues,
+		...(Object.keys(body).length && { body }),
+		...(Object.keys(qs).length && { qs }),
 	};
-
-	if (!Object.keys(body).length) {
-		// biome-ignore lint/performance/noDelete: <explanation>
-		delete options.body;
-	}
-
-	if (!Object.keys(qs).length) {
-		// biome-ignore lint/performance/noDelete: <explanation>
-		delete options.qs;
-	}
 
 	try {
 		return await this.helpers.httpRequestWithAuthentication.call(this, 'openSearchApi', options);
 	} catch (error) {
-		throw new NodeApiError(this.getNode(), error as JsonObject);
+		const err = error as JsonObject & { statusCode?: number; message?: string };
+
+		// Provide helpful message for 400 errors which often indicate malformed queries
+		if (err.statusCode === 400) {
+			throw new NodeApiError(this.getNode(), err, {
+				message: 'Bad request - please check your parameters',
+				description: 'OpenSearch rejected the query. If using as an AI tool, the AI may have sent an invalid query format. Expected format: {"query": {"match_all": {}}} or similar OpenSearch Query DSL.',
+			});
+		}
+
+		throw new NodeApiError(this.getNode(), err);
 	}
 }
 
+/**
+ * Fetches all items from an index using Point-in-Time (PIT) pagination
+ * Automatically handles pagination to retrieve all matching documents
+ * @param indexId - The index to search
+ * @param body - Search query body
+ * @param qs - Query string parameters
+ * @returns Array of all matching documents
+ */
 export async function openSearchApiRequestAllItems(
 	this: IExecuteFunctions,
 	indexId: string,
 	body: IDataObject = {},
 	qs: IDataObject = {},
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-): Promise<any> {
+): Promise<IDataObject[]> {
 	//https://www.elastic.co/guide/en/elasticsearch/reference/7.16/paginate-search-results.html#search-after
 	try {
 		//create a point in time (PIT) to preserve the current index state over your searches
@@ -105,8 +126,8 @@ export async function openSearchApiRequestAllItems(
 		)?.id as string;
 
 		let returnData: IDataObject[] = [];
-		// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-		let responseData;
+		// biome-ignore lint/suspicious/noExplicitAny: responseData structure varies during pagination
+		let responseData: any;
 		let searchAfter: string[] = [];
 
 		const requestBody: IDataObject = {
@@ -156,18 +177,26 @@ export async function openSearchApiRequestAllItems(
 	}
 }
 
+/**
+ * Fetches all items from an index using Scroll API pagination
+ * Alternative to PIT pagination, useful for older OpenSearch versions
+ * @param indexId - The index to search
+ * @param body - Search query body
+ * @param qs - Query string parameters
+ * @param scrollTime - Time to keep scroll context alive in minutes (default: 1)
+ * @returns Array of all matching documents
+ */
 export async function openSearchApiRequestWithScroll(
 	this: IExecuteFunctions,
 	indexId: string,
 	body: IDataObject = {},
 	qs: IDataObject = {},
 	scrollTime: number = 1,
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-): Promise<any> {
+): Promise<IDataObject[]> {
 	try {
 		let returnData: IDataObject[] = [];
-		// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-		let responseData;
+		// biome-ignore lint/suspicious/noExplicitAny: responseData structure varies during pagination
+		let responseData: any;
 		let scrollId: string | undefined;
 
 		// Initial search request with scroll

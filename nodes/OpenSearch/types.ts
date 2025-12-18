@@ -30,10 +30,10 @@ export type DocumentGetAllOptions = Partial<{
 	_source_includes: string;
 	stats: string;
 	stored_fields: boolean;
-	terminate_after: boolean;
+	terminate_after: number;
 	timeout: number;
 	track_scores: boolean;
-	track_total_hits: string;
+	track_total_hits: number | boolean;
 	version: boolean;
 }>;
 

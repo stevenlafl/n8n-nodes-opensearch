@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-opensearch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Adds OpenSearch vector store and generic nodes to n8n",
   "keywords": [
     "n8n-community-node-package"
@@ -28,7 +28,12 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes credentials package.json"
+    "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes credentials package.json",
+    "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns='integration'",
+    "test:integration": "jest tests/integration",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "files": [
     "dist"
@@ -44,26 +49,33 @@
     ]
   },
   "dependencies": {
-    "@opensearch-project/opensearch": "^2.12.0",
+    "@langchain/classic": "^1.0.5",
     "@langchain/community": "^1.0.5",
-    "@langchain/classic": "^1.0.5"
+    "@opensearch-project/opensearch": "^2.12.0"
   },
   "devDependencies": {
+    "@langchain/core": "^1.1.0",
+    "@langchain/openai": "^1.2.0",
+    "@langchain/textsplitters": "^1.0.1",
+    "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.10",
     "@typescript-eslint/parser": "^7.15.0",
-    "@langchain/core": "^1.1.0",
-    "@langchain/textsplitters": "^1.0.1",
     "eslint": "^8.56.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.1",
     "gulp": "^4.0.2",
+    "jest": "^30.2.0",
+    "jest-mock-extended": "^4.0.0",
     "langchain": "^1.1.1",
     "lodash": "^4.17.21",
+    "n8n-workflow": "^2.1.0",
     "prettier": "^3.3.2",
     "tmp-promise": "^3.0.3",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.7.2",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "n8n-workflow": ">=1.48.0"
+    "@langchain/core": ">=0.3.0",
+    "n8n-workflow": ">=2.1.0"
   }
 }

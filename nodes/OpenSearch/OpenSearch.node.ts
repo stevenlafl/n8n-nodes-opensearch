@@ -7,9 +7,10 @@ import type {
 	INodeTypeDescription,
 	JsonObject,
 } from 'n8n-workflow';
-import { jsonParse, NodeApiError, NodeConnectionType } from 'n8n-workflow';
+import { jsonParse, NodeApiError, NodeConnectionTypes } from 'n8n-workflow';
 
 import omit from 'lodash/omit';
+
 import {
 	openSearchApiRequest,
 	openSearchApiRequestAllItems,
@@ -33,10 +34,26 @@ export class OpenSearch implements INodeType {
 		defaults: {
 			name: 'OpenSearch',
 		},
+		usableAsTool: true,
+		codex: {
+			categories: ['Data & Storage', 'AI'],
+			subcategories: {
+				'Data & Storage': ['Search'],
+				AI: ['Tools'],
+			},
+			alias: ['elastic', 'search', 'elasticsearch'],
+			resources: {
+				primaryDocumentation: [
+					{
+						url: 'https://opensearch.org/docs/latest/',
+					},
+				],
+			},
+		},
 		// eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
-		inputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
 		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
-		outputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'openSearchApi',
@@ -75,7 +92,7 @@ export class OpenSearch implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as 'document' | 'index';
 		const operation = this.getNodeParameter('operation', 0);
 
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: responseData holds various response types throughout execution
 		let responseData: any;
 
 		let bulkBody: IDataObject = {};
@@ -154,7 +171,7 @@ export class OpenSearch implements INodeType {
 						const { query, ...rest } = options;
 						if (query) {
 							const parsedQuery = jsonParse(query, { errorMessage: "Invalid JSON in 'Query' option" }) as IDataObject;
-							
+
 							// Only validate if the user provided a query string
 							// If the parsed query doesn't have a valid "query" field, it's an error
 							if (!parsedQuery.query || typeof parsedQuery.query !== 'object' || Object.keys(parsedQuery.query as IDataObject).length === 0) {
@@ -163,7 +180,7 @@ export class OpenSearch implements INodeType {
 									description: 'The query parameter must contain a valid "query" object. Example: {"query": {"match_all": {}}}. If you want all documents, leave the query parameter empty.',
 								} as JsonObject);
 							}
-							
+
 							Object.assign(body, parsedQuery);
 						}
 						// If no query is provided, body remains empty which is valid (returns all documents)
@@ -242,22 +259,48 @@ export class OpenSearch implements INodeType {
 					// https://opensearch.org/docs/latest/api-reference/search-apis/search/
 
 					const indexId = this.getNodeParameter('indexId', i);
-					const queryJson = this.getNodeParameter('query', i) as string;
+					const queryParam = this.getNodeParameter('query', i);
 
 					const body = {} as IDataObject;
 					const qs = {} as IDataObject;
 					const options = this.getNodeParameter('options', i) as DocumentSearchOptions;
 
-					// Parse the query JSON
-					try {
-						const parsedQuery = jsonParse(queryJson, { errorMessage: "Invalid JSON in 'Query' parameter" }) as IDataObject;
-						Object.assign(body, parsedQuery);
-					} catch (error) {
+					// Parse the query - handle string (plain text or JSON) and object
+					let parsedQuery: IDataObject;
+
+					if (typeof queryParam === 'string') {
+						const trimmed = queryParam.trim();
+
+						// If it looks like JSON, parse it
+						if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+							try {
+								parsedQuery = jsonParse(trimmed, { errorMessage: "Invalid JSON in 'Query' parameter" }) as IDataObject;
+							} catch (error) {
+								throw new NodeApiError(this.getNode(), {
+									message: 'Invalid query JSON',
+									description: 'The query parameter must be valid JSON. Example: {"query": {"match_all": {}}}',
+								} as JsonObject);
+							}
+						} else {
+							// Plain text - convert to query_string search
+							parsedQuery = {
+								query: {
+									query_string: {
+										query: trimmed,
+									},
+								},
+							};
+						}
+					} else if (typeof queryParam === 'object' && queryParam !== null) {
+						parsedQuery = queryParam as IDataObject;
+					} else {
 						throw new NodeApiError(this.getNode(), {
-							message: 'Invalid query JSON',
-							description: 'The query parameter must be valid JSON. Example: {"query": {"match_all": {}}}',
+							message: 'Invalid query parameter type',
+							description: 'Query must be a plain text search term, JSON string, or object',
 						} as JsonObject);
 					}
+
+					Object.assign(body, parsedQuery);
 
 					// Handle options
 					if (Object.keys(options).length) {
@@ -335,9 +378,9 @@ export class OpenSearch implements INodeType {
 
 					if (dataToSend === 'defineBelow') {
 						const fields = this.getNodeParameter('fieldsUi.fieldValues', i, []) as FieldsUiValues;
-						// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
-						// biome-ignore lint/complexity/noForEach: <explanation>
-						fields.forEach(({ fieldId, fieldValue }) => (body[fieldId] = fieldValue));
+						for (const { fieldId, fieldValue } of fields) {
+							body[fieldId] = fieldValue;
+						}
 					} else {
 						const inputData = items[i].json;
 						const rawInputsToIgnore = this.getNodeParameter('inputsToIgnore', i) as string;
@@ -391,9 +434,9 @@ export class OpenSearch implements INodeType {
 
 					if (dataToSend === 'defineBelow') {
 						const fields = this.getNodeParameter('fieldsUi.fieldValues', i, []) as FieldsUiValues;
-						// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
-						// biome-ignore lint/complexity/noForEach: <explanation>
-						fields.forEach(({ fieldId, fieldValue }) => (body.doc[fieldId] = fieldValue));
+						for (const { fieldId, fieldValue } of fields) {
+							body.doc[fieldId] = fieldValue;
+						}
 					} else {
 						const inputData = items[i].json;
 						const rawInputsToIgnore = this.getNodeParameter('inputsToIgnore', i) as string;
@@ -439,18 +482,38 @@ export class OpenSearch implements INodeType {
 
 					const body = {} as IDataObject;
 					const qs = {} as IDataObject;
-					const additionalFields = this.getNodeParameter('additionalFields', i);
+					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const skipIfExists = additionalFields.skipIfExists as boolean;
 
 					if (Object.keys(additionalFields).length) {
-						const { aliases, mappings, settings, ...rest } = additionalFields;
-						Object.assign(body, aliases, mappings, settings);
+						const { aliases, mappings, settings, skipIfExists: _, ...rest } = additionalFields;
+						if (aliases) Object.assign(body, { aliases: jsonParse(aliases as string) });
+						if (mappings) Object.assign(body, { mappings: jsonParse(mappings as string) });
+						if (settings) Object.assign(body, { settings: jsonParse(settings as string) });
 						Object.assign(qs, rest);
 					}
 
-					responseData = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`);
-					responseData = { id: indexId, ...responseData };
-					// biome-ignore lint/performance/noDelete: <explanation>
-					delete responseData.index;
+					// Check if index exists when skipIfExists is enabled
+					if (skipIfExists) {
+						let indexExists = false;
+						try {
+							await openSearchApiRequest.call(this, 'HEAD', `/${indexId}`);
+							indexExists = true;
+						} catch (error) {
+							// Index doesn't exist
+							indexExists = false;
+						}
+
+						if (indexExists) {
+							responseData = { id: indexId, acknowledged: true, skipped: true };
+						} else {
+							const { index: _index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
+							responseData = { id: indexId, ...rest };
+						}
+					} else {
+						const { index: _index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
+						responseData = { id: indexId, ...rest };
+					}
 				} else if (operation === 'delete') {
 					// ----------------------------------------
 					//              index: delete
@@ -459,9 +522,29 @@ export class OpenSearch implements INodeType {
 					// https://www.elastic.co/guide/en/openSearch/reference/current/indices-delete-index.html
 
 					const indexId = this.getNodeParameter('indexId', i);
+					const options = this.getNodeParameter('options', i, {}) as IDataObject;
+					const skipIfNotExists = options.skipIfNotExists as boolean;
 
-					responseData = await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
-					responseData = { success: true };
+					if (skipIfNotExists) {
+						let indexExists = false;
+						try {
+							await openSearchApiRequest.call(this, 'HEAD', `/${indexId}`);
+							indexExists = true;
+						} catch (error) {
+							// Index doesn't exist, skip deletion
+							indexExists = false;
+						}
+
+						if (indexExists) {
+							responseData = await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
+							responseData = { success: true };
+						} else {
+							responseData = { success: true, skipped: true };
+						}
+					} else {
+						responseData = await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
+						responseData = { success: true };
+					}
 				} else if (operation === 'get') {
 					// ----------------------------------------
 					//              index: get
@@ -516,7 +599,7 @@ export class OpenSearch implements INodeType {
 						const errorData = itemData.error as IDataObject;
 						const message = errorData.type as string;
 						const description = errorData.reason as string;
-						const itemIndex = Number.parseInt(Object.keys(bulkBody)[j]);
+						const itemIndex = parseInt(Object.keys(bulkBody)[j], 10);
 						if (this.continueOnFail()) {
 							returnData.push(
 								...this.helpers.constructExecutionMetaData(
@@ -525,18 +608,16 @@ export class OpenSearch implements INodeType {
 								),
 							);
 							continue;
-						// biome-ignore lint/style/noUselessElse: <explanation>
-						} else {
-							throw new NodeApiError(this.getNode(), {
-								message,
-								description,
-								itemIndex,
-							} as JsonObject);
 						}
+						throw new NodeApiError(this.getNode(), {
+							message,
+							description,
+							itemIndex,
+						} as JsonObject);
 					}
 					const executionData = this.helpers.constructExecutionMetaData(
 						this.helpers.returnJsonArray(itemData),
-						{ itemData: { item: Number.parseInt(Object.keys(bulkBody)[j]) } },
+						{ itemData: { item: parseInt(Object.keys(bulkBody)[j], 10) } },
 					);
 					returnData.push(...executionData);
 				}
@@ -551,7 +632,7 @@ export class OpenSearch implements INodeType {
 					const errorData = itemData.error as IDataObject;
 					const message = errorData.type as string;
 					const description = errorData.reason as string;
-					const itemIndex = Number.parseInt(Object.keys(bulkBody)[j]);
+					const itemIndex = parseInt(Object.keys(bulkBody)[j], 10);
 					if (this.continueOnFail()) {
 						returnData.push(
 							...this.helpers.constructExecutionMetaData(
@@ -560,18 +641,16 @@ export class OpenSearch implements INodeType {
 							),
 						);
 						continue;
-					// biome-ignore lint/style/noUselessElse: <explanation>
-					} else {
-						throw new NodeApiError(this.getNode(), {
-							message,
-							description,
-							itemIndex,
-						} as JsonObject);
 					}
+					throw new NodeApiError(this.getNode(), {
+						message,
+						description,
+						itemIndex,
+					} as JsonObject);
 				}
 				const executionData = this.helpers.constructExecutionMetaData(
 					this.helpers.returnJsonArray(itemData),
-					{ itemData: { item: Number.parseInt(Object.keys(bulkBody)[j]) } },
+					{ itemData: { item: parseInt(Object.keys(bulkBody)[j], 10) } },
 				);
 				returnData.push(...executionData);
 			}

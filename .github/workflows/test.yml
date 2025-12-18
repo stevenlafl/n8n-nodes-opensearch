@@ -1,0 +1,99 @@
+name: Test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  # Fast unit tests - no external dependencies
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run unit tests
+        run: pnpm test:unit
+
+  # Integration tests with OpenSearch
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    services:
+      opensearch:
+        image: opensearchproject/opensearch:3.0.0
+        ports:
+          - 9200:9200
+        env:
+          discovery.type: single-node
+          bootstrap.memory_lock: "true"
+          OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: MyStr0ng#Pass!2024
+        options: >-
+          --health-cmd "curl -sk https://localhost:9200 -u admin:MyStr0ng#Pass!2024 | grep -q cluster_name"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 60s
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Wait for OpenSearch
+        run: |
+          echo "Waiting for OpenSearch to be ready..."
+          for i in {1..60}; do
+            if curl -sk https://localhost:9200 -u admin:MyStr0ng#Pass!2024 | grep -q cluster_name; then
+              echo "OpenSearch is ready!"
+              exit 0
+            fi
+            echo "Attempt $i/60 - OpenSearch not ready yet..."
+            sleep 5
+          done
+          echo "OpenSearch failed to start"
+          exit 1
+
+      - name: Run integration tests
+        run: pnpm test:integration
+        env:
+          OPENSEARCH_URL: https://localhost:9200
+          OPENSEARCH_USERNAME: admin
+          OPENSEARCH_PASSWORD: MyStr0ng#Pass!2024

@@ -1,8 +1,25 @@
-// from @n8n/n8n-nodes-langchain:1.48.0
+// @ts-nocheck
 import type { Document } from '@langchain/core/documents';
 import type { INodeExecutionData } from 'n8n-workflow';
-import { N8nJsonLoader } from '../../../utils/N8nJsonLoader';
+
 import { N8nBinaryLoader } from '../../../utils/N8nBinaryLoader';
+import { N8nJsonLoader } from '../../../utils/N8nJsonLoader';
+
+// Type guard using duck typing - checks if the object has processAll/processItem methods
+// This is needed because n8n's built-in document loaders return their own N8nJsonLoader/N8nBinaryLoader
+// instances which are different classes from our local ones, causing instanceof to fail
+function isDocumentLoader(
+	input: unknown,
+): input is { processAll: (items: INodeExecutionData[]) => Promise<Document[]>; processItem: (item: INodeExecutionData, itemIndex: number) => Promise<Document[]> } {
+	return (
+		input !== null &&
+		typeof input === 'object' &&
+		'processAll' in input &&
+		typeof (input as Record<string, unknown>).processAll === 'function' &&
+		'processItem' in input &&
+		typeof (input as Record<string, unknown>).processItem === 'function'
+	);
+}
 
 export async function processDocuments(
 	documentInput: N8nJsonLoader | N8nBinaryLoader | Array<Document<Record<string, unknown>>>,
@@ -10,14 +27,12 @@ export async function processDocuments(
 ) {
 	let processedDocuments: Document[];
 
-	if (documentInput !== undefined
-		&& documentInput.constructor !== undefined
-		&& (documentInput.constructor.name === 'N8nJsonLoader' || documentInput.constructor.name === 'N8nBinaryLoader')
-	) {
-		processedDocuments = await (documentInput as (N8nBinaryLoader | N8nJsonLoader)).processAll(inputItems);
+	if (isDocumentLoader(documentInput)) {
+		processedDocuments = await documentInput.processAll(inputItems);
+	} else if (Array.isArray(documentInput)) {
+		processedDocuments = documentInput;
 	} else {
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		processedDocuments = documentInput as any;
+		throw new Error(`Invalid document input type: expected document loader or array of documents`);
 	}
 
 	const serializedDocuments = processedDocuments.map(({ metadata, pageContent }) => ({
@@ -36,14 +51,12 @@ export async function processDocument(
 ) {
 	let processedDocuments: Document[];
 
-	if (documentInput !== undefined
-		&& documentInput.constructor !== undefined
-		&& (documentInput.constructor.name === 'N8nJsonLoader' || documentInput.constructor.name === 'N8nBinaryLoader')
-	) {
-		processedDocuments = await (documentInput as (N8nBinaryLoader | N8nJsonLoader)).processItem(inputItem, itemIndex);
+	if (isDocumentLoader(documentInput)) {
+		processedDocuments = await documentInput.processItem(inputItem, itemIndex);
+	} else if (Array.isArray(documentInput)) {
+		processedDocuments = documentInput;
 	} else {
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		processedDocuments = documentInput as any;
+		throw new Error(`Invalid document input type: expected document loader or array of documents`);
 	}
 
 	const serializedDocuments = processedDocuments.map(({ metadata, pageContent }) => ({

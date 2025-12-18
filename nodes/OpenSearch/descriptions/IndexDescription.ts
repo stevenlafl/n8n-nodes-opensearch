@@ -71,6 +71,13 @@ export const indexFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Skip If Exists',
+				name: 'skipIfExists',
+				description: 'Whether to skip creation without error if the index already exists',
+				type: 'boolean',
+				default: false,
+			},
+			{
 				displayName: 'Aliases',
 				name: 'aliases',
 				description:
@@ -157,6 +164,28 @@ export const indexFields: INodeProperties[] = [
 				operation: ['delete'],
 			},
 		},
+	},
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['index'],
+				operation: ['delete'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Skip If Not Exists',
+				name: 'skipIfNotExists',
+				description: 'Whether to skip deletion without error if the index does not exist',
+				type: 'boolean',
+				default: false,
+			},
+		],
 	},
 
 	// ----------------------------------------

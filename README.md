@@ -46,8 +46,34 @@ You will need a baseURL and a username and password to authenticate to the OpenS
 
 ## Compatibility
 
-n8n-nodes-opensearch @0.1.4 - Supports n8n 1.48.0+, tested with 1.62.1
-n8n-nodes-opensearch @0.2.0 - Supports n8n 2.1.0+
+| Package Version | n8n Version | Notes |
+|-----------------|-------------|-------|
+| @0.1.4 | 1.48.0+ | Tested with 1.62.1 |
+| @0.2.x | 2.0.0+ | Full support including AI tools |
+| @0.2.x | 1.100.0+ | AI tools supported |
+
+### Using as AI Tool
+
+The OpenSearch node supports `usableAsTool: true`, which allows it to be used as an AI Agent tool. This creates an `opensearchTool` node type automatically.
+
+**Requirements:**
+- n8n **1.100.0 or later** is required for AI tool support with community packages. Earlier versions of n8n 1.x (< 1.100.0) only support tool nodes from built-in `n8n-nodes-base` packages.
+
+**Query Parameter:**
+The Search Index operation's Query parameter accepts:
+- **Plain text**: e.g., `"my search term"` - automatically converted to a `query_string` search across all fields
+- **JSON**: e.g., `{"query": {"match": {"title": "hello"}}}` - passed directly to OpenSearch
+
+When using as an AI tool, set up the Query field with `$fromAI()`:
+```
+{{ $fromAI('Query', 'Search term to find documents', 'string') }}
+```
+
+**Important:** The `$fromAI()` must use `'string'` type (not `'json'`). If upgrading from an older version where you had `'json'` type, you'll need to either:
+1. Manually change `'json'` to `'string'` in the expression
+2. Delete and re-add the tool node, then click "let the model define the parameters"
+
+**n8n 1.x vs 2.x:** Both versions work with AI tools. n8n 1.x uses AgentV2 which validates tool inputs with Zod schemas directly. n8n 2.x uses AgentV3 with a different execution model. Using `'string'` type ensures compatibility with both.
 
 ## Resources
 

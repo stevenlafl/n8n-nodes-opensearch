@@ -1,0 +1,1545 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## OpenSearch Node - Index Operations\n\n**Operations:** Create, Get, Get All, Delete",
+        "height": 320,
+        "width": 1260,
+        "color": 3
+      },
+      "id": "9bd1e2ce-28d1-4bcf-8f12-08c1cafe2740",
+      "name": "Sticky Note - Index",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2816,
+        464
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "8d808d60-7a32-49b8-84de-f2b4965415b0",
+      "name": "Manual Trigger - Index",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        2896,
+        624
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "indexId": "documents",
+        "additionalFields": {
+          "skipIfExists": true
+        }
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        624
+      ],
+      "id": "9ef5af2a-2c2b-49a4-9b71-50a76874e904",
+      "name": "Index: Create",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "operation": "get",
+        "indexId": "={{ $json.id }}",
+        "additionalFields": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3344,
+        624
+      ],
+      "id": "454406e1-c728-486a-87b9-fbd649941235",
+      "name": "Index: Get",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "operation": "getAll",
+        "limit": 10
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3536,
+        624
+      ],
+      "id": "a1cdbf0c-0b8c-45ea-90a8-7d243b462600",
+      "name": "Index: Get All",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "operation": "delete",
+        "indexId": "={{ $('Index: Create').item.json.id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3856,
+        624
+      ],
+      "id": "ad33d6a6-0015-4577-8f09-44a0a09f25a3",
+      "name": "Index: Delete",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## OpenSearch Node - Document Operations\n\n**Operations:** Create, Get, Update, Get All, Search, Delete",
+        "height": 384,
+        "width": 1900,
+        "color": 5
+      },
+      "id": "32f9cfb0-3460-4f79-b959-b6485cd6d02c",
+      "name": "Sticky Note - Document",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2816,
+        864
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "indexId": "documents",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "Test Document"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "This is test content for OpenSearch"
+            }
+          ]
+        },
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        1024
+      ],
+      "id": "b3f742fc-5c2a-4f67-954a-4920486beba9",
+      "name": "Document: Create",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "indexId": "documents",
+        "documentId": "={{ $json._id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3344,
+        1024
+      ],
+      "id": "ef89cc62-346e-4a86-9b61-5922370d23f6",
+      "name": "Document: Get",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "indexId": "documents",
+        "documentId": "={{ $json._id }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "Updated Document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3536,
+        1024
+      ],
+      "id": "0088171f-32b0-4182-b6d1-a76ed49c060a",
+      "name": "Document: Update",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "indexId": "documents",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3936,
+        1024
+      ],
+      "id": "8ba91fb7-de11-4770-a0b3-878ce3601fe2",
+      "name": "Document: Get All",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "indexId": "documents",
+        "query": "{\"query\":{\"match\":{\"title\":\"Updated\"}}}",
+        "limit": 10,
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        4240,
+        1024
+      ],
+      "id": "076019ac-00aa-4b18-8877-66d399169a8d",
+      "name": "Document: Search",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "indexId": "documents",
+        "documentId": "={{ $('Document: Create').item.json._id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        912
+      ],
+      "id": "9fa12e5b-ba62-477d-a557-64f11901bc6c",
+      "name": "Document: Delete",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store - Insert Mode\n\n**Insert documents into vector store**",
+        "height": 688,
+        "width": 612,
+        "color": 5
+      },
+      "id": "a4ec1314-08a6-46a1-a4eb-17441f30064b",
+      "name": "Sticky Note - VS Insert",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2816,
+        2048
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store - Load Mode\n\n**Similarity search**",
+        "height": 496,
+        "width": 372,
+        "color": 4
+      },
+      "id": "d8fb18e7-b275-4889-8dd1-3c7ef2b79ddd",
+      "name": "Sticky Note - VS Load",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3488,
+        2048
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "indexName": {
+          "__rl": true,
+          "value": "vectors",
+          "mode": "id"
+        },
+        "prompt": "sample document",
+        "options": {}
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1.1,
+      "position": [
+        3520,
+        2208
+      ],
+      "id": "2fe7bf02-4a30-4466-97ba-94851ff7b813",
+      "name": "Vector Store: Load",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store - QA Chain - Retrieve mode\n\n**For use with Retriever node**",
+        "height": 852,
+        "width": 516,
+        "color": 6
+      },
+      "id": "59f6a5a4-6899-4f61-a086-4a2d15e87a57",
+      "name": "Sticky Note - VS Retrieve",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3904,
+        2048
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8aae5615-3c70-4b9f-a1a6-6687c3c94721",
+      "name": "Chat Trigger - Retrieve",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        4176,
+        1616
+      ],
+      "webhookId": "chat-retrieve-webhook",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "indexName": {
+          "__rl": true,
+          "value": "vectors",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1.1,
+      "position": [
+        4064,
+        2544
+      ],
+      "id": "278b4016-be14-4ca4-a4a1-2c68f399127d",
+      "name": "Vector Store: Retrieve",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store - Retrieve As Tool Mode\n\n**Direct tool for AI Agent**",
+        "height": 724,
+        "width": 788
+      },
+      "id": "85542535-113e-4343-b369-750fa37214fe",
+      "name": "Sticky Note - VS Tool",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5136,
+        2048
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search for documents in the knowledge base",
+        "indexName": {
+          "__rl": true,
+          "value": "vectors",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1.3,
+      "position": [
+        5616,
+        2416
+      ],
+      "id": "fe2ca42a-41dc-4151-b4ee-069f741f5700",
+      "name": "Vector Store: As Tool",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        3696,
+        624
+      ],
+      "id": "da12a6b1-74eb-4581-ad27-27b0f091b498",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "indexId": "documents",
+        "query": "{\"query\":{\"match\":{\"title\":\"Updated\"}}}",
+        "limit": 10,
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        256
+      ],
+      "id": "3e6e9835-4872-4405-bc0b-1870f04ffd56",
+      "name": "Document: Search1",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        4096,
+        1024
+      ],
+      "id": "f327e820-a812-4b3c-8bba-6c737aab3766",
+      "name": "Limit2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "indexId": "documents",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        -112
+      ],
+      "id": "8cefe1cb-d5e9-487e-b6b9-7f69c23d71d2",
+      "name": "Get many documents",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "indexId": "=documents",
+        "documentId": "={{ $json._id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        -112
+      ],
+      "id": "8290ee83-b601-4ee3-b636-c75fce99ea36",
+      "name": "Delete a document",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3760,
+        1024
+      ],
+      "id": "a981d997-6be2-41d9-b013-172793d1fabf",
+      "name": "Wait",
+      "webhookId": "02f8f67a-313d-4765-96b3-2f810d08663e"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload Document for Insert",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "File",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf,.txt",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "35614994-0688-4f67-ba00-8efcc32b782b",
+      "name": "Form - Insert Document",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        2928,
+        2176
+      ],
+      "webhookId": "4e1e20d4-f759-42c8-8439-87b93f43aa7c",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "indexName": {
+          "__rl": true,
+          "value": "vectors",
+          "mode": "id"
+        },
+        "options": {
+          "clearIndex": true
+        }
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        2176
+      ],
+      "id": "5556ec50-44ed-49b0-abe1-ff83da205733",
+      "name": "OpenSearch - Insert",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 200,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "id": "09934b1f-67fe-407b-9f65-8a92f391bd82",
+      "name": "Text Splitter - Insert",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        3088,
+        2544
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "id": "7dad8f01-4b18-4439-a76d-d3eb99f5f9f2",
+      "name": "Document Loader - Insert1",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        3088,
+        2384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "indexId": "vectors",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        1824
+      ],
+      "id": "017a0722-1790-4a5f-aadc-cc0299ca8bb4",
+      "name": "Get many documents1",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "indexId": "vectors",
+        "documentId": "={{ $json._id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3136,
+        1824
+      ],
+      "id": "714bc436-4728-4a4e-b2d3-111ae1dc63f6",
+      "name": "Delete a document1",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        4768,
+        2416
+      ],
+      "id": "afe90443-3b48-455d-a297-51f2c1adbdd3",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "indexName": {
+          "__rl": true,
+          "value": "vectors",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1.3,
+      "position": [
+        4656,
+        2576
+      ],
+      "id": "bff73e6a-8ec3-4331-a7bf-d7e5477a7645",
+      "name": "OpenSearch Vector Store",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        2384
+      ],
+      "id": "fec74e91-8e24-44b6-b30b-a2af6100e6ca",
+      "name": "Vector Store Retriever"
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store - Answer From Vctor Store - Retrieve mode\n\n**For use with Retriever node**",
+        "height": 848,
+        "width": 624,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4464,
+        2048
+      ],
+      "id": "4c3620ea-ee2d-4473-88c2-fa61e7549876",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "operation": "getAll",
+        "limit": 10
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        96
+      ],
+      "id": "c45ec5dc-bdf3-4e0c-bdde-7c6f005d82fe",
+      "name": "Index: Get All1",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "indexId": "vectors",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        1568
+      ],
+      "id": "65da044a-7506-4ed4-962f-6559f5020776",
+      "name": "Get many documents2",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "index",
+        "operation": "delete",
+        "indexId": "vectors",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        1728
+      ],
+      "id": "23d73443-dbc7-4d99-aa41-9bcc73133124",
+      "name": "Delete an index",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Use OpenSearch node as tool with AI provided inputs ",
+        "height": 496,
+        "width": 416
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4736,
+        768
+      ],
+      "id": "3c77b57e-1874-428e-a216-a17effc9a131",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## OpenSearch Node Tools",
+        "height": 592,
+        "width": 480,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        -176
+      ],
+      "id": "bd4cb5b1-cbf7-462f-8ba7-8f6995e86f5d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## OpenSearchVector Node Tools",
+        "height": 496,
+        "width": 1200,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        1504
+      ],
+      "id": "6230752b-1bfb-47f5-a973-fcb31e2bc9a4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "mode": "update",
+        "indexName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "vectors"
+        },
+        "id": "={{ $json._id }}",
+        "options": {}
+      },
+      "type": "CUSTOM.vectorStoreOpenSearch",
+      "typeVersion": 1.3,
+      "position": [
+        3424,
+        1568
+      ],
+      "id": "179a5c91-8bd0-492f-8cc6-8deba6eafafa",
+      "name": "Embeddings - Regenerate OpenSearch Vectors",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ITEMS BELOW ARE FOR A SEPARATE INDEX\n- ** Above **: 'documents' index, no embeddings\n- ** Below **: 'vectors' index with embeddings\n",
+        "height": 112,
+        "width": 2368,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        1328
+      ],
+      "id": "2e04f90e-3059-4689-9f5d-b972764b2cf9",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        4736,
+        2784
+      ],
+      "id": "461dc502-197f-49cb-aaa5-417985a5af9f",
+      "name": "Embeddings OpenAI3",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        4160,
+        2768
+      ],
+      "id": "ea70c095-0394-4bcf-af34-f0bab0cf5b32",
+      "name": "Embeddings OpenAI4",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        3504,
+        1792
+      ],
+      "id": "4cce0789-47d1-4714-bf76-ae2557ddbad6",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        5728,
+        2576
+      ],
+      "id": "408cc80a-a425-466e-a6ee-dc90befa9503",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        4656,
+        2192
+      ],
+      "id": "c10d90c7-2694-4982-abeb-fb88d5de3f63",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        5184,
+        2176
+      ],
+      "id": "f5f2845d-8b20-4550-8d91-931b12640a83",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        5216,
+        2384
+      ],
+      "id": "64737ff9-fad2-4d2d-8c41-5ae0fd7457c6",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        4528,
+        2448
+      ],
+      "id": "068cb491-db1c-48b5-abcc-4043b45fea15",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        3600,
+        2384
+      ],
+      "id": "b6d68577-5f92-4fea-9b07-de557b20b179",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        2928,
+        2368
+      ],
+      "id": "884a9e61-55ee-4eab-a14d-88569d89c4d8",
+      "name": "Embeddings OpenAI5",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        3968,
+        2384
+      ],
+      "id": "b7093567-87ea-4ffc-ba5a-3cb84ba59956",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
+      "typeVersion": 1.4,
+      "position": [
+        3936,
+        2192
+      ],
+      "id": "e256c3ee-c535-48c7-b317-774eb241783f",
+      "name": "Question and Answer Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        4800,
+        896
+      ],
+      "id": "2ccb8291-08d2-42a7-9aa8-e755ea5d3595",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        4800,
+        1088
+      ],
+      "id": "966f0e5d-4d25-46da-8e28-cf8d95bc7033",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "UbRx1AlWgZsCrnfy",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "indexId": "documents",
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', `Search term to find in documents`, 'string') }}",
+        "options": {}
+      },
+      "type": "CUSTOM.opensearchTool",
+      "typeVersion": 1,
+      "position": [
+        4960,
+        1104
+      ],
+      "id": "7c80d2b9-59f8-4258-9d31-18effea8f434",
+      "name": "Search documents in an index in OpenSearch",
+      "credentials": {
+        "openSearchApi": {
+          "id": "EbViQpBuAw4jiKq5",
+          "name": "OpenSearch account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger - Index": {
+      "main": [
+        [
+          {
+            "node": "Index: Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Create": {
+      "main": [
+        [
+          {
+            "node": "Index: Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Get": {
+      "main": [
+        [
+          {
+            "node": "Index: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Get All": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Create": {
+      "main": [
+        [
+          {
+            "node": "Document: Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Get": {
+      "main": [
+        [
+          {
+            "node": "Document: Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Update": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Document: Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Get All": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Retrieve": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Index: Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Document: Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many documents": {
+      "main": [
+        [
+          {
+            "node": "Delete a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Document: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form - Insert Document": {
+      "main": [
+        [
+          {
+            "node": "OpenSearch - Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Splitter - Insert": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Document Loader - Insert1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Loader - Insert1": {
+      "ai_document": [
+        [
+          {
+            "node": "OpenSearch - Insert",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many documents1": {
+      "main": [
+        [
+          {
+            "node": "Delete a document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many documents2": {
+      "main": [
+        [
+          {
+            "node": "Embeddings - Regenerate OpenSearch Vectors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "OpenSearch Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Retrieve",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Embeddings - Regenerate OpenSearch Vectors",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: As Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: As Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Load",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI5": {
+      "ai_embedding": [
+        [
+          {
+            "node": "OpenSearch - Insert",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retriever": {
+      "ai_retriever": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger - Retrieve": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search documents in an index in OpenSearch": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenSearch Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1d621552-22ed-4b90-8b85-a67cc8f740e7",
+  "meta": {
+    "instanceId": "9b15d22c74ce57b82221970a1d3c6ea1e2c15d63bb403dca8e21ee7d9a3288e0"
+  },
+  "id": "8ku56tVjtAYLvRmz",
+  "tags": []
+}

@@ -1,7 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-import * as placeholders from './placeholders';
-
 export const documentOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
@@ -530,11 +528,11 @@ export const documentFields: INodeProperties[] = [
 	{
 		displayName: 'Query',
 		name: 'query',
-		description: 'OpenSearch query in JSON format',
-		type: 'json',
+		description: 'Plain text search term or OpenSearch query in JSON format',
+		type: 'string',
 		required: true,
 		typeOptions: {
-			alwaysOpenEditWindow: true,
+			rows: 5,
 		},
 		default: '{"query": {"match_all": {}}}',
 		displayOptions: {
@@ -543,7 +541,6 @@ export const documentFields: INodeProperties[] = [
 				operation: ['search'],
 			},
 		},
-		placeholder: placeholders.query,
 	},
 	{
 		displayName: 'Return All',

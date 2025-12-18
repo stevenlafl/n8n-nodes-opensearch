@@ -1,24 +1,22 @@
-// from @n8n/n8n-nodes-langchain:1.48.0
-import { type IExecuteFunctions, type INodeExecutionData, NodeOperationError } from 'n8n-workflow';
-
-import type { TextSplitter } from '@langchain/textsplitters';
 import type { Document } from '@langchain/core/documents';
+import type { TextSplitter } from '@langchain/textsplitters';
 import { JSONLoader } from '@langchain/classic/document_loaders/fs/json';
 import { TextLoader } from '@langchain/classic/document_loaders/fs/text';
+import {
+	type IExecuteFunctions,
+	type INodeExecutionData,
+	type ISupplyDataFunctions,
+	NodeOperationError,
+} from 'n8n-workflow';
+
 import { getMetadataFiltersValues } from './helpers';
 
 export class N8nJsonLoader {
-	private context: IExecuteFunctions;
-
-	private optionsPrefix: string;
-
-	private textSplitter?: TextSplitter;
-
-	constructor(context: IExecuteFunctions, optionsPrefix = '', textSplitter?: TextSplitter) {
-		this.context = context;
-		this.textSplitter = textSplitter;
-		this.optionsPrefix = optionsPrefix;
-	}
+	constructor(
+		private context: IExecuteFunctions | ISupplyDataFunctions,
+		private optionsPrefix = '',
+		private textSplitter?: TextSplitter,
+	) {}
 
 	async processAll(items?: INodeExecutionData[]): Promise<Document[]> {
 		const docs: Document[] = [];

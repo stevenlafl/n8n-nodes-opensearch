@@ -1,38 +1,45 @@
-// from @n8n/n8n-nodes-langchain:1.48.0
-import { NodeOperationError, NodeConnectionType } from 'n8n-workflow';
-import type { ConnectionTypes, IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
-
-import { Tool } from '@langchain/core/tools';
-import type { BaseMessage } from '@langchain/core/messages';
-import type { InputValues, MemoryVariables, OutputValues } from '@langchain/core/memory';
-import { BaseChatMessageHistory } from '@langchain/core/chat_history';
+import type { BaseChatMemory } from '@langchain/community/memory/chat_memory';
 import type { BaseCallbackConfig, Callbacks } from '@langchain/core/callbacks/manager';
-
-import { Embeddings } from '@langchain/core/embeddings';
-import { VectorStore } from '@langchain/core/vectorstores';
+import type { BaseChatMessageHistory } from '@langchain/core/chat_history';
 import type { Document } from '@langchain/core/documents';
-import { TextSplitter } from '@langchain/textsplitters';
-import { BaseChatMemory } from '@langchain/community/memory/chat_memory';
+import { Embeddings } from '@langchain/core/embeddings';
+import type { InputValues, MemoryVariables, OutputValues } from '@langchain/core/memory';
+import type { BaseMessage } from '@langchain/core/messages';
 import { BaseRetriever } from '@langchain/core/retrievers';
-import { BaseOutputParser, OutputParserException } from '@langchain/core/output_parsers';
-import { isObject } from 'lodash';
-import type { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
-import { N8nJsonLoader } from './N8nJsonLoader';
-import { N8nBinaryLoader } from './N8nBinaryLoader';
-import { logAiEvent } from './helpers';
+import { BaseDocumentCompressor } from '@langchain/core/retrievers/document_compressors';
+import type { StructuredTool, Tool } from '@langchain/core/tools';
+import { VectorStore } from '@langchain/core/vectorstores';
+import { TextSplitter } from '@langchain/textsplitters';
+import type { BaseDocumentLoader } from '@langchain/classic/dist/document_loaders/base';
+import { OpenAIEmbeddings, AzureOpenAIEmbeddings } from '@langchain/openai';
+import type {
+	IDataObject,
+	IExecuteFunctions,
+	INodeExecutionData,
+	ISupplyDataFunctions,
+	ITaskMetadata,
+	NodeConnectionType,
+} from 'n8n-workflow';
+import {
+	NodeOperationError,
+	NodeConnectionTypes,
+	parseErrorMetadata,
+	deepCopy,
+} from 'n8n-workflow';
 
-const errorsMap: { [key: string]: { message: string; description: string } } = {
-	'You exceeded your current quota, please check your plan and billing details.': {
-		message: 'OpenAI quota exceeded',
-		description: 'You exceeded your current quota, please check your plan and billing details.',
-	},
-};
+import {
+	validateEmbedQueryInput,
+	validateEmbedDocumentsInput,
+} from './embeddings/embeddingInputValidation';
+import { logAiEvent, isToolsInstance, isBaseChatMemory, isBaseChatMessageHistory } from './helpers';
+import { N8nBinaryLoader } from './N8nBinaryLoader';
+import { N8nJsonLoader } from './N8nJsonLoader';
 
 export async function callMethodAsync<T>(
 	this: T,
 	parameters: {
-		executeFunctions: IExecuteFunctions;
-		connectionType: ConnectionTypes;
+		executeFunctions: IExecuteFunctions | ISupplyDataFunctions;
+		connectionType: NodeConnectionType;
 		currentNodeRunIndex: number;
 		method: (...args: any[]) => Promise<unknown>;
 		arguments: unknown[];
@@ -41,32 +48,27 @@ export async function callMethodAsync<T>(
 	try {
 		return await parameters.method.call(this, ...parameters.arguments);
 	} catch (e) {
-		// Langchain checks for OutputParserException to run retry chain
-		// for auto-fixing the output so skip wrapping in this case
-		if (e instanceof OutputParserException) throw e;
-
-		// Propagate errors from sub-nodes
-		if (e.functionality === 'configuration-node') throw e;
 		const connectedNode = parameters.executeFunctions.getNode();
 
 		const error = new NodeOperationError(connectedNode, e, {
 			functionality: 'configuration-node',
 		});
 
-		if (errorsMap[error.message]) {
-			error.description = errorsMap[error.message].description;
-			error.message = errorsMap[error.message].message;
-		}
-
+		const metadata = parseErrorMetadata(error);
 		parameters.executeFunctions.addOutputData(
 			parameters.connectionType,
 			parameters.currentNodeRunIndex,
 			error,
+			metadata,
 		);
+
 		if (error.message) {
-			error.description = error.message;
+			if (!error.description) {
+				error.description = error.message;
+			}
 			throw error;
 		}
+
 		throw new NodeOperationError(
 			connectedNode,
 			`Error on node "${connectedNode.name}" which is connected via input "${parameters.connectionType}"`,
@@ -79,7 +81,7 @@ export function callMethodSync<T>(
 	this: T,
 	parameters: {
 		executeFunctions: IExecuteFunctions;
-		connectionType: ConnectionTypes;
+		connectionType: NodeConnectionType;
 		currentNodeRunIndex: number;
 		method: (...args: any[]) => T;
 		arguments: unknown[];
@@ -88,8 +90,6 @@ export function callMethodSync<T>(
 	try {
 		return parameters.method.call(this, ...parameters.arguments);
 	} catch (e) {
-		// Propagate errors from sub-nodes
-		if (e.functionality === 'configuration-node') throw e;
 		const connectedNode = parameters.executeFunctions.getNode();
 		const error = new NodeOperationError(connectedNode, e);
 		parameters.executeFunctions.addOutputData(
@@ -97,6 +97,7 @@ export function callMethodSync<T>(
 			parameters.currentNodeRunIndex,
 			error,
 		);
+
 		throw new NodeOperationError(
 			connectedNode,
 			`Error on node "${connectedNode.name}" which is connected via input "${parameters.connectionType}"`,
@@ -105,14 +106,17 @@ export function callMethodSync<T>(
 	}
 }
 
-export function logWrapper(
-	originalInstance:
+export function logWrapper<
+	T extends
 		| Tool
+		| StructuredTool
 		| BaseChatMemory
 		| BaseChatMessageHistory
-		| BaseOutputParser
 		| BaseRetriever
+		| BaseDocumentCompressor
 		| Embeddings
+		| OpenAIEmbeddings
+		| AzureOpenAIEmbeddings
 		| Document[]
 		| Document
 		| BaseDocumentLoader
@@ -120,16 +124,15 @@ export function logWrapper(
 		| VectorStore
 		| N8nBinaryLoader
 		| N8nJsonLoader,
-	executeFunctions: IExecuteFunctions,
-) {
+>(originalInstance: T, executeFunctions: IExecuteFunctions | ISupplyDataFunctions): T {
 	return new Proxy(originalInstance, {
 		get: (target, prop) => {
-			let connectionType: ConnectionTypes | undefined;
+			let connectionType: NodeConnectionType | undefined;
 			// ========== BaseChatMemory ==========
-			if (originalInstance instanceof BaseChatMemory) {
+			if (isBaseChatMemory(originalInstance)) {
 				if (prop === 'loadMemoryVariables' && 'loadMemoryVariables' in target) {
 					return async (values: InputValues): Promise<MemoryVariables> => {
-						connectionType = NodeConnectionType.AiMemory;
+						connectionType = NodeConnectionTypes.AiMemory;
 
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { action: 'loadMemoryVariables', values } }],
@@ -139,7 +142,7 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [values],
 						})) as MemoryVariables;
 
@@ -152,7 +155,7 @@ export function logWrapper(
 					};
 				} else if (prop === 'saveContext' && 'saveContext' in target) {
 					return async (input: InputValues, output: OutputValues): Promise<MemoryVariables> => {
-						connectionType = NodeConnectionType.AiMemory;
+						connectionType = NodeConnectionTypes.AiMemory;
 
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { action: 'saveContext', input, output } }],
@@ -162,7 +165,7 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [input, output],
 						})) as MemoryVariables;
 
@@ -178,10 +181,10 @@ export function logWrapper(
 			}
 
 			// ========== BaseChatMessageHistory ==========
-			if (originalInstance instanceof BaseChatMessageHistory) {
+			if (isBaseChatMessageHistory(originalInstance)) {
 				if (prop === 'getMessages' && 'getMessages' in target) {
 					return async (): Promise<BaseMessage[]> => {
-						connectionType = NodeConnectionType.AiMemory;
+						connectionType = NodeConnectionTypes.AiMemory;
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { action: 'getMessages' } }],
 						]);
@@ -190,19 +193,19 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [],
 						})) as BaseMessage[];
 
 						const payload = { action: 'getMessages', response };
 						executeFunctions.addOutputData(connectionType, index, [[{ json: payload }]]);
 
-						void logAiEvent(executeFunctions, 'n8n.ai.memory.get.messages', { response });
+						logAiEvent(executeFunctions, 'ai-messages-retrieved-from-memory', { response });
 						return response;
 					};
 				} else if (prop === 'addMessage' && 'addMessage' in target) {
 					return async (message: BaseMessage): Promise<void> => {
-						connectionType = NodeConnectionType.AiMemory;
+						connectionType = NodeConnectionTypes.AiMemory;
 						const payload = { action: 'addMessage', message };
 						const { index } = executeFunctions.addInputData(connectionType, [[{ json: payload }]]);
 
@@ -210,50 +213,12 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [message],
 						});
 
-						void logAiEvent(executeFunctions, 'n8n.ai.memory.added.message', { message });
+						logAiEvent(executeFunctions, 'ai-message-added-to-memory', { message });
 						executeFunctions.addOutputData(connectionType, index, [[{ json: payload }]]);
-					};
-				}
-			}
-
-			// ========== BaseOutputParser ==========
-			if (originalInstance instanceof BaseOutputParser) {
-				if (prop === 'parse' && 'parse' in target) {
-					return async (text: string | Record<string, unknown>): Promise<unknown> => {
-						connectionType = NodeConnectionType.AiOutputParser;
-						const stringifiedText = isObject(text) ? JSON.stringify(text) : text;
-						const { index } = executeFunctions.addInputData(connectionType, [
-							[{ json: { action: 'parse', text: stringifiedText } }],
-						]);
-
-						try {
-							const response = (await callMethodAsync.call(target, {
-								executeFunctions,
-								connectionType,
-								currentNodeRunIndex: index,
-								method: target[prop],
-								arguments: [stringifiedText],
-							})) as object;
-
-							void logAiEvent(executeFunctions, 'n8n.ai.output.parser.parsed', { text, response });
-							executeFunctions.addOutputData(connectionType, index, [
-								[{ json: { action: 'parse', response } }],
-							]);
-							return response;
-						} catch (error) {
-							void logAiEvent(executeFunctions, 'n8n.ai.output.parser.parsed', {
-								text,
-								response: error.message ?? error,
-							});
-							executeFunctions.addOutputData(connectionType, index, [
-								[{ json: { action: 'parse', response: error.message ?? error } }],
-							]);
-							throw error;
-						}
 					};
 				}
 			}
@@ -265,7 +230,7 @@ export function logWrapper(
 						query: string,
 						config?: Callbacks | BaseCallbackConfig,
 					): Promise<Document[]> => {
-						connectionType = NodeConnectionType.AiRetriever;
+						connectionType = NodeConnectionTypes.AiRetriever;
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { query, config } }],
 						]);
@@ -274,36 +239,62 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop] as (...args: unknown[]) => Promise<unknown>,
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [query, config],
 						})) as Array<Document<Record<string, any>>>;
 
-						void logAiEvent(executeFunctions, 'n8n.ai.retriever.get.relevant.documents', { query });
-						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
+						const executionId: string | undefined = response[0]?.metadata?.executionId as string;
+						const workflowId: string | undefined = response[0]?.metadata?.workflowId as string;
+
+						const metadata: ITaskMetadata = {};
+						if (executionId && workflowId) {
+							metadata.subExecution = {
+								executionId,
+								workflowId,
+							};
+						}
+
+						logAiEvent(executeFunctions, 'ai-documents-retrieved', { query });
+						executeFunctions.addOutputData(
+							connectionType,
+							index,
+							[[{ json: { response } }]],
+							metadata,
+						);
 						return response;
 					};
 				}
 			}
 
 			// ========== Embeddings ==========
-			if (originalInstance instanceof Embeddings) {
+			if (
+				originalInstance instanceof Embeddings ||
+				originalInstance instanceof OpenAIEmbeddings ||
+				originalInstance instanceof AzureOpenAIEmbeddings
+			) {
 				// Docs -> Embeddings
 				if (prop === 'embedDocuments' && 'embedDocuments' in target) {
 					return async (documents: string[]): Promise<number[][]> => {
-						connectionType = NodeConnectionType.AiEmbedding;
+						// Validate documents input before embedding
+						const validatedDocuments = validateEmbedDocumentsInput(
+							documents,
+							executeFunctions.getNode(),
+						);
+
+						connectionType = NodeConnectionTypes.AiEmbedding;
 						const { index } = executeFunctions.addInputData(connectionType, [
-							[{ json: { documents } }],
+							[{ json: { documents: validatedDocuments } }],
 						]);
 
 						const response = (await callMethodAsync.call(target, {
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
-							arguments: [documents],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
+							arguments: [validatedDocuments],
 						})) as number[][];
 
-						void logAiEvent(executeFunctions, 'n8n.ai.embeddings.embedded.document');
+						logAiEvent(executeFunctions, 'ai-document-embedded');
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
 						return response;
 					};
@@ -311,19 +302,49 @@ export function logWrapper(
 				// Query -> Embeddings
 				if (prop === 'embedQuery' && 'embedQuery' in target) {
 					return async (query: string): Promise<number[]> => {
-						connectionType = NodeConnectionType.AiEmbedding;
+						// Validate query input before embedding
+						const validatedQuery = validateEmbedQueryInput(query, executeFunctions.getNode());
+
+						connectionType = NodeConnectionTypes.AiEmbedding;
 						const { index } = executeFunctions.addInputData(connectionType, [
-							[{ json: { query } }],
+							[{ json: { query: validatedQuery } }],
 						]);
 
 						const response = (await callMethodAsync.call(target, {
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
-							arguments: [query],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
+							arguments: [validatedQuery],
 						})) as number[];
-						void logAiEvent(executeFunctions, 'n8n.ai.embeddings.embedded.query');
+
+						logAiEvent(executeFunctions, 'ai-query-embedded');
+						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
+						return response;
+					};
+				}
+			}
+
+			// ========== Rerankers ==========
+			if (originalInstance instanceof BaseDocumentCompressor) {
+				if (prop === 'compressDocuments' && 'compressDocuments' in target) {
+					return async (documents: Document[], query: string): Promise<Document[]> => {
+						connectionType = NodeConnectionTypes.AiReranker;
+						const { index } = executeFunctions.addInputData(connectionType, [
+							[{ json: { query, documents } }],
+						]);
+
+						const response = (await callMethodAsync.call(target, {
+							executeFunctions,
+							connectionType,
+							currentNodeRunIndex: index,
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
+							// compressDocuments mutates the original object
+							// messing up the input data logging
+							arguments: [deepCopy(documents), query],
+						})) as Document[];
+
+						logAiEvent(executeFunctions, 'ai-document-reranked', { query });
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
 						return response;
 					};
@@ -338,14 +359,14 @@ export function logWrapper(
 				// Process All
 				if (prop === 'processAll' && 'processAll' in target) {
 					return async (items: INodeExecutionData[]): Promise<number[]> => {
-						connectionType = NodeConnectionType.AiDocument;
+						connectionType = NodeConnectionTypes.AiDocument;
 						const { index } = executeFunctions.addInputData(connectionType, [items]);
 
 						const response = (await callMethodAsync.call(target, {
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [items],
 						})) as number[];
 
@@ -357,18 +378,18 @@ export function logWrapper(
 				// Process Each
 				if (prop === 'processItem' && 'processItem' in target) {
 					return async (item: INodeExecutionData, itemIndex: number): Promise<number[]> => {
-						connectionType = NodeConnectionType.AiDocument;
+						connectionType = NodeConnectionTypes.AiDocument;
 						const { index } = executeFunctions.addInputData(connectionType, [[item]]);
 
 						const response = (await callMethodAsync.call(target, {
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [item, itemIndex],
 						})) as number[];
 
-						void logAiEvent(executeFunctions, 'n8n.ai.document.processed');
+						logAiEvent(executeFunctions, 'ai-document-processed');
 						executeFunctions.addOutputData(connectionType, index, [
 							[{ json: { response }, pairedItem: { item: itemIndex } }],
 						]);
@@ -381,7 +402,7 @@ export function logWrapper(
 			if (originalInstance instanceof TextSplitter) {
 				if (prop === 'splitText' && 'splitText' in target) {
 					return async (text: string): Promise<string[]> => {
-						connectionType = NodeConnectionType.AiTextSplitter;
+						connectionType = NodeConnectionTypes.AiTextSplitter;
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { textSplitter: text } }],
 						]);
@@ -390,11 +411,11 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [text],
 						})) as string[];
 
-						void logAiEvent(executeFunctions, 'n8n.ai.text.splitter.split');
+						logAiEvent(executeFunctions, 'ai-text-split');
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
 						return response;
 					};
@@ -402,25 +423,35 @@ export function logWrapper(
 			}
 
 			// ========== Tool ==========
-			if (originalInstance instanceof Tool) {
+			if (isToolsInstance(originalInstance)) {
 				if (prop === '_call' && '_call' in target) {
 					return async (query: string): Promise<string> => {
-						connectionType = NodeConnectionType.AiTool;
+						connectionType = NodeConnectionTypes.AiTool;
+						const inputData: IDataObject = { query };
+
+						if (target.metadata?.isFromToolkit) {
+							inputData.tool = {
+								name: target.name,
+								description: target.description,
+							};
+						}
 						const { index } = executeFunctions.addInputData(connectionType, [
-							[{ json: { query } }],
+							[{ json: inputData }],
 						]);
 
 						const response = (await callMethodAsync.call(target, {
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [query],
 						})) as string;
 
-						void logAiEvent(executeFunctions, 'n8n.ai.tool.called', { query, response });
+						logAiEvent(executeFunctions, 'ai-tool-called', { ...inputData, response });
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
-						return response;
+
+						if (typeof response === 'string') return response;
+						return JSON.stringify(response);
 					};
 				}
 			}
@@ -431,11 +462,10 @@ export function logWrapper(
 					return async (
 						query: string,
 						k?: number,
-						// @ts-ignore
-						filter?: BiquadFilterType | undefined,
-						_callbacks?: Callbacks | undefined,
+						filter?: BiquadFilterType,
+						_callbacks?: Callbacks,
 					): Promise<Document[]> => {
-						connectionType = NodeConnectionType.AiVectorStore;
+						connectionType = NodeConnectionTypes.AiVectorStore;
 						const { index } = executeFunctions.addInputData(connectionType, [
 							[{ json: { query, k, filter } }],
 						]);
@@ -444,11 +474,11 @@ export function logWrapper(
 							executeFunctions,
 							connectionType,
 							currentNodeRunIndex: index,
-							method: target[prop],
+							method: target[prop] as (...args: any[]) => Promise<unknown>,
 							arguments: [query, k, filter, _callbacks],
 						})) as Array<Document<Record<string, any>>>;
 
-						void logAiEvent(executeFunctions, 'n8n.ai.vector.store.searched', { query });
+						logAiEvent(executeFunctions, 'ai-vector-store-searched', { query });
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
 
 						return response;

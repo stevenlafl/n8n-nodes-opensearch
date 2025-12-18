@@ -6,12 +6,13 @@ The [OpenSearch](https://opensearch.org/) project, created by Amazon, is a forke
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
-[Installation](#installation)  
-[Operations](#operations)  
-[Credentials](#credentials)  <!-- delete if no auth needed -->  
-[Compatibility](#compatibility)  
+[Installation](#installation)
+[Operations](#operations)
+[Credentials](#credentials)
+[Compatibility](#compatibility)
+[Sample Workflows](#sample-workflows)
+[Version History](#version-history)
 [Resources](#resources)  
-[Version history](#version-history)  <!-- delete if not using this section -->  
 
 ## Installation
 
@@ -74,6 +75,44 @@ When using as an AI tool, set up the Query field with `$fromAI()`:
 2. Delete and re-add the tool node, then click "let the model define the parameters"
 
 **n8n 1.x vs 2.x:** Both versions work with AI tools. n8n 1.x uses AgentV2 which validates tool inputs with Zod schemas directly. n8n 2.x uses AgentV3 with a different execution model. Using `'string'` type ensures compatibility with both.
+
+## Sample Workflows
+
+Sample n8n workflows demonstrating OpenSearch node usage are available in the [`tests/workflows/`](tests/workflows/) folder:
+
+- `opensearch-all-modes-test-1.123.7.json` - For n8n 1.x
+- `opensearch-all-modes-test-2.1.0.json` - For n8n 2.x
+
+Import these into your n8n instance to see examples of all operations including document CRUD, index management, and vector store usage.
+
+## Version History
+
+### 0.2.2 (2025-12-18)
+- Fixed OpenSearch node not appearing in n8n 2.x search (removed incorrect 'AI' category)
+
+### 0.2.1 (2025-12-18)
+- Extensive refactor with full test coverage
+- Added support for OpenSearch 2.x and 3.x
+- Added nmslib engine deprecation handling for OpenSearch 3.x
+- Fixed build and packaging issues
+
+### 0.2.0 (2025-12-17)
+- Upgraded to `@langchain/classic` 1.0.5 for n8n 2.x compatibility
+- Added n8n 2.x support while maintaining n8n 1.x compatibility
+
+### 0.1.3 (2025-10-02)
+- Added Search Index operation with Scroll API support
+- Fixed HTTP methods for complex queries
+
+### 0.1.2 (2025-07-10)
+- Fixed missing dependency issue
+
+### 0.1.1 (2024-10-04)
+- Documentation updates
+
+### 0.1.0 (2024-10-04)
+- Initial release with OpenSearch document and index operations
+- OpenSearch Vector Store for AI/LangChain workflows
 
 ## Resources
 

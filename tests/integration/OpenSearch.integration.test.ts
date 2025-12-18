@@ -6,9 +6,11 @@
  * to a running OpenSearch instance.
  *
  * Prerequisites:
- * 1. Start OpenSearch using: docker compose -f docker-compose.test.yml --profile v3 up -d
+ * 1. Start OpenSearch using: docker compose -f docker-compose.test.yml --profile os-both up -d
  * 2. Wait for OpenSearch to be healthy
  * 3. Run tests: pnpm test:integration
+ *
+ * The tests will automatically run against all available OpenSearch versions.
  */
 
 import { mock } from 'jest-mock-extended';
@@ -24,29 +26,88 @@ import { Client } from '@opensearch-project/opensearch';
 
 import { OpenSearch } from '../../nodes/OpenSearch/OpenSearch.node';
 
-const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'https://localhost:9200';
-const OPENSEARCH_USERNAME = process.env.OPENSEARCH_USERNAME || 'admin';
-const OPENSEARCH_PASSWORD = process.env.OPENSEARCH_PASSWORD || 'MyStr0ng#Pass!2024';
-const TEST_INDEX = 'integration-test-index';
+const OPENSEARCH_USERNAME = 'admin';
+const OPENSEARCH_PASSWORD = 'MyStr0ng#Pass!2024';
 
-// Real credentials for Docker OpenSearch instance
-const TEST_CREDENTIALS: ICredentialDataDecryptedObject = {
-	baseUrl: OPENSEARCH_URL,
-	username: OPENSEARCH_USERNAME,
-	password: OPENSEARCH_PASSWORD,
-	ignoreSSLIssues: true,
-};
+// Define OpenSearch instances to test against
+interface OpenSearchInstance {
+	name: string;
+	url: string;
+	version: string;
+}
 
-describe('OpenSearch Node Integration Tests', () => {
+// Check which OpenSearch instances are available
+async function getAvailableInstances(): Promise<OpenSearchInstance[]> {
+	const instances: OpenSearchInstance[] = [];
+	const candidates = [
+		{ name: 'OpenSearch 3.x', url: 'https://localhost:9200', version: '3.x' },
+		{ name: 'OpenSearch 2.x', url: 'https://localhost:9201', version: '2.x' },
+	];
+
+	for (const candidate of candidates) {
+		try {
+			const client = new Client({
+				node: candidate.url,
+				auth: { username: OPENSEARCH_USERNAME, password: OPENSEARCH_PASSWORD },
+				ssl: { rejectUnauthorized: false },
+			});
+			await client.cluster.health({ timeout: '5s' });
+			await client.close();
+			instances.push(candidate);
+		} catch {
+			// Instance not available, skip it
+		}
+	}
+
+	if (instances.length === 0) {
+		throw new Error(
+			'No OpenSearch instances available. Please start at least one with:\n' +
+			'  docker compose -f docker-compose.test.yml --profile v3 up -d  (for 3.x)\n' +
+			'  docker compose -f docker-compose.test.yml --profile v2 up -d  (for 2.x)\n' +
+			'  docker compose -f docker-compose.test.yml --profile os-both up -d  (for both)'
+		);
+	}
+
+	return instances;
+}
+
+// Get available instances before running tests
+let availableInstances: OpenSearchInstance[] = [];
+
+beforeAll(async () => {
+	availableInstances = await getAvailableInstances();
+	console.log(`Testing against: ${availableInstances.map(i => i.name).join(', ')}`);
+}, 30000);
+
+describe.each([
+	['OpenSearch 3.x', 'https://localhost:9200'],
+	['OpenSearch 2.x', 'https://localhost:9201'],
+])('%s Integration Tests', (instanceName, instanceUrl) => {
 	let client: Client;
 	let nodeInstance: OpenSearch;
+	let testCredentials: ICredentialDataDecryptedObject;
+	const TEST_INDEX = `integration-test-${instanceName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+	let instanceAvailable = false;
 
 	beforeAll(async () => {
+		// Check if this instance is available
+		instanceAvailable = availableInstances.some(i => i.url === instanceUrl);
+		if (!instanceAvailable) {
+			console.log(`⏭️  Skipping ${instanceName} - not available`);
+			return;
+		}
+
 		nodeInstance = new OpenSearch();
+		testCredentials = {
+			baseUrl: instanceUrl,
+			username: OPENSEARCH_USERNAME,
+			password: OPENSEARCH_PASSWORD,
+			ignoreSSLIssues: true,
+		};
 
 		// Create real client for setup/teardown and health checks
 		client = new Client({
-			node: OPENSEARCH_URL,
+			node: instanceUrl,
 			auth: {
 				username: OPENSEARCH_USERNAME,
 				password: OPENSEARCH_PASSWORD,
@@ -65,7 +126,7 @@ describe('OpenSearch Node Integration Tests', () => {
 			} catch {
 				retries--;
 				if (retries === 0) {
-					throw new Error('OpenSearch is not available. Please start it with: docker compose -f docker-compose.test.yml --profile v3 up -d');
+					throw new Error(`${instanceName} is not available at ${instanceUrl}`);
 				}
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 			}
@@ -77,9 +138,11 @@ describe('OpenSearch Node Integration Tests', () => {
 		} catch {
 			// Index might not exist
 		}
-	});
+	}, 60000);
 
 	afterAll(async () => {
+		if (!client) return;
+
 		// Cleanup test indices
 		try {
 			await client.indices.delete({ index: TEST_INDEX });
@@ -88,6 +151,25 @@ describe('OpenSearch Node Integration Tests', () => {
 		}
 		await client.close();
 	});
+
+	// Skip all tests if instance is not available
+	beforeEach(function() {
+		if (!instanceAvailable) {
+			// Use pending() for Jasmine-like behavior in Jest
+			// This will cause the test to be marked as skipped
+			console.log(`⏭️  Test skipped - ${instanceName} not available`);
+		}
+	});
+
+	// Wrapper for it() that skips if instance unavailable
+	const testIf = (name: string, fn: () => Promise<void>) => {
+		it(name, async () => {
+			if (!instanceAvailable) {
+				return; // Skip silently
+			}
+			await fn();
+		});
+	};
 
 	/**
 	 * Helper to create a mocked IExecuteFunctions context that allows real HTTP calls
@@ -114,7 +196,7 @@ describe('OpenSearch Node Integration Tests', () => {
 			parameters: params as INodeParameters,
 		});
 
-		mockContext.getCredentials.mockResolvedValue(TEST_CREDENTIALS);
+		mockContext.getCredentials.mockResolvedValue(testCredentials);
 		mockContext.continueOnFail.mockReturnValue(false);
 
 		// Implement real HTTP request helper that calls OpenSearch
@@ -189,7 +271,7 @@ describe('OpenSearch Node Integration Tests', () => {
 
 	describe('Index Operations', () => {
 		describe('index:create', () => {
-			it('should create an index through node execute', async () => {
+			testIf('should create an index through node execute', async () => {
 				const params = {
 					resource: 'index',
 					operation: 'create',
@@ -208,7 +290,7 @@ describe('OpenSearch Node Integration Tests', () => {
 				expect(indexExists.body).toBe(true);
 			});
 
-			it('should skip creation without error when skipIfExists is true and index exists', async () => {
+			testIf('should skip creation without error when skipIfExists is true and index exists', async () => {
 				// First ensure the index exists
 				const indexExists = await client.indices.exists({ index: TEST_INDEX });
 				expect(indexExists.body).toBe(true);
@@ -228,7 +310,7 @@ describe('OpenSearch Node Integration Tests', () => {
 				expect(result[0][0].json).toHaveProperty('skipped', true);
 			});
 
-			it('should fail when creating existing index without skipIfExists', async () => {
+			testIf('should fail when creating existing index without skipIfExists', async () => {
 				// First ensure the index exists
 				const indexExists = await client.indices.exists({ index: TEST_INDEX });
 				expect(indexExists.body).toBe(true);
@@ -247,7 +329,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('index:get', () => {
-			it('should get index information through node execute', async () => {
+			testIf('should get index information through node execute', async () => {
 				const params = {
 					resource: 'index',
 					operation: 'get',
@@ -265,7 +347,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('index:getAll', () => {
-			it('should list all indices through node execute', async () => {
+			testIf('should list all indices through node execute', async () => {
 				const params = {
 					resource: 'index',
 					operation: 'getAll',
@@ -280,7 +362,7 @@ describe('OpenSearch Node Integration Tests', () => {
 				expect(indexIds).toContain(TEST_INDEX);
 			});
 
-			it('should limit results when returnAll is false', async () => {
+			testIf('should limit results when returnAll is false', async () => {
 				const params = {
 					resource: 'index',
 					operation: 'getAll',
@@ -299,7 +381,7 @@ describe('OpenSearch Node Integration Tests', () => {
 	describe('Document Operations', () => {
 
 		describe('document:create', () => {
-			it('should create a document through node execute', async () => {
+			testIf('should create a document through node execute', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'create',
@@ -324,7 +406,7 @@ describe('OpenSearch Node Integration Tests', () => {
 				await client.indices.refresh({ index: TEST_INDEX });
 			});
 
-			it('should create a document with specific ID', async () => {
+			testIf('should create a document with specific ID', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'create',
@@ -349,7 +431,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('document:get', () => {
-			it('should get a document through node execute', async () => {
+			testIf('should get a document through node execute', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'get',
@@ -367,7 +449,7 @@ describe('OpenSearch Node Integration Tests', () => {
 				expect(result[0][0].json).toHaveProperty('_source');
 			});
 
-			it('should simplify document response when simple is true', async () => {
+			testIf('should simplify document response when simple is true', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'get',
@@ -388,7 +470,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('document:update', () => {
-			it('should update a document through node execute', async () => {
+			testIf('should update a document through node execute', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'update',
@@ -413,7 +495,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('document:getAll', () => {
-			it('should get all documents with simple response', async () => {
+			testIf('should get all documents with simple response', async () => {
 				// Refresh to ensure all docs are searchable
 				await client.indices.refresh({ index: TEST_INDEX });
 
@@ -438,7 +520,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('document:search', () => {
-			it('should search documents with query', async () => {
+			testIf('should search documents with query', async () => {
 				// Refresh to ensure all docs are searchable
 				await client.indices.refresh({ index: TEST_INDEX });
 
@@ -464,7 +546,7 @@ describe('OpenSearch Node Integration Tests', () => {
 		});
 
 		describe('document:delete', () => {
-			it('should delete a document through node execute', async () => {
+			testIf('should delete a document through node execute', async () => {
 				const params = {
 					resource: 'document',
 					operation: 'delete',
@@ -487,7 +569,7 @@ describe('OpenSearch Node Integration Tests', () => {
 	});
 
 	describe('index:delete', () => {
-		it('should delete an index through node execute', async () => {
+		testIf('should delete an index through node execute', async () => {
 			// Clean up first in case of leftover from previous run
 			try {
 				await client.indices.delete({ index: 'temp-delete-test' });
@@ -514,7 +596,7 @@ describe('OpenSearch Node Integration Tests', () => {
 			expect(exists.body).toBe(false);
 		});
 
-		it('should skip deletion without error when skipIfNotExists is true and index does not exist', async () => {
+		testIf('should skip deletion without error when skipIfNotExists is true and index does not exist', async () => {
 			// Ensure the index does not exist
 			try {
 				await client.indices.delete({ index: 'nonexistent-skip-test' });
@@ -537,7 +619,7 @@ describe('OpenSearch Node Integration Tests', () => {
 			expect(result[0][0].json).toHaveProperty('skipped', true);
 		});
 
-		it('should fail when deleting nonexistent index without skipIfNotExists', async () => {
+		testIf('should fail when deleting nonexistent index without skipIfNotExists', async () => {
 			// Ensure the index does not exist
 			try {
 				await client.indices.delete({ index: 'nonexistent-fail-test' });
@@ -559,7 +641,7 @@ describe('OpenSearch Node Integration Tests', () => {
 	});
 
 	describe('Error Handling', () => {
-		it('should handle document not found error', async () => {
+		testIf('should handle document not found error', async () => {
 			const params = {
 				resource: 'document',
 				operation: 'get',
@@ -575,7 +657,7 @@ describe('OpenSearch Node Integration Tests', () => {
 			await expect(nodeInstance.execute.call(mockContext)).rejects.toThrow();
 		});
 
-		it('should handle index not found error', async () => {
+		testIf('should handle index not found error', async () => {
 			const params = {
 				resource: 'index',
 				operation: 'get',

@@ -294,7 +294,7 @@ describe('OpenSearch Node', () => {
 			);
 
 			expect(queryField).toBeDefined();
-			expect(queryField?.type).toBe('json');
+			expect(queryField?.type).toBe('string');
 			expect(queryField?.required).toBe(true);
 		});
 

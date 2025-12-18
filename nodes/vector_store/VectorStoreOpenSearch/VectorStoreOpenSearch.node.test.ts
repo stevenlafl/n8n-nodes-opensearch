@@ -1,5 +1,5 @@
 // Mock external modules before imports
-jest.mock('@langchain/community/vectorstores/opensearch', () => {
+jest.mock('../../../utils/OpenSearchVectorStore', () => {
 	const mockVectorStoreInstance = {
 		similaritySearch: jest.fn().mockResolvedValue([]),
 		similaritySearchVectorWithScore: jest.fn().mockResolvedValue([]),

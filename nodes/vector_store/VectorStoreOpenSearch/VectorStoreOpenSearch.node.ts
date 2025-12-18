@@ -1,4 +1,4 @@
-import { OpenSearchClientArgs, OpenSearchVectorStore } from '@langchain/community/vectorstores/opensearch';
+import { OpenSearchClientArgs, OpenSearchVectorStore } from '../../../utils/OpenSearchVectorStore';
 import {
 	Client as OpenSearchClient,
 	type ClientOptions as OpenSearchClientOptions,

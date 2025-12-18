@@ -87,6 +87,13 @@ Import these into your n8n instance to see examples of all operations including 
 
 ## Version History
 
+### 0.2.4 (2025-12-18)
+- Fixed module resolution issue preventing installation via n8n community package installer
+- Replaced `@langchain/community` OpenSearch vectorstore with custom implementation to avoid dependency conflicts
+
+### 0.2.3 (2025-12-18)
+- Moved `@langchain/community` and `@langchain/core` to peerDependencies to avoid version conflicts
+
 ### 0.2.2 (2025-12-18)
 - Fixed OpenSearch node not appearing in n8n 2.x search (removed incorrect 'AI' category)
 

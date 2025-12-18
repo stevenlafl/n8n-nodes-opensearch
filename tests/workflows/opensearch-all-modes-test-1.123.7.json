@@ -36,7 +36,7 @@
           "skipIfExists": true
         }
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3120,
@@ -58,7 +58,7 @@
         "indexId": "={{ $json.id }}",
         "additionalFields": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3344,
@@ -79,7 +79,7 @@
         "operation": "getAll",
         "limit": 10
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3536,
@@ -101,7 +101,7 @@
         "indexId": "={{ $('Index: Create').item.json.id }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3856,
@@ -151,7 +151,7 @@
         "additionalFields": {},
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3120,
@@ -172,7 +172,7 @@
         "documentId": "={{ $json._id }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3344,
@@ -202,7 +202,7 @@
         },
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3536,
@@ -223,7 +223,7 @@
         "indexId": "documents",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3936,
@@ -246,7 +246,7 @@
         "limit": 10,
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         4240,
@@ -268,7 +268,7 @@
         "documentId": "={{ $('Document: Create').item.json._id }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         4480,
@@ -326,7 +326,7 @@
         "prompt": "sample document",
         "options": {}
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1.1,
       "position": [
         3520,
@@ -380,7 +380,7 @@
         },
         "options": {}
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1.1,
       "position": [
         4064,
@@ -421,7 +421,7 @@
         },
         "options": {}
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1.3,
       "position": [
         5616,
@@ -455,7 +455,7 @@
         "limit": 10,
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         2896,
@@ -488,7 +488,7 @@
         "returnAll": true,
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         2896,
@@ -510,7 +510,7 @@
         "documentId": "={{ $json._id }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3120,
@@ -576,7 +576,7 @@
           "clearIndex": true
         }
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1,
       "position": [
         3120,
@@ -627,7 +627,7 @@
         "returnAll": true,
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         2928,
@@ -649,7 +649,7 @@
         "documentId": "={{ $json._id }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3136,
@@ -684,7 +684,7 @@
         },
         "options": {}
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1.3,
       "position": [
         4656,
@@ -732,7 +732,7 @@
         "operation": "getAll",
         "limit": 10
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         2896,
@@ -754,7 +754,7 @@
         "returnAll": true,
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         2896,
@@ -776,7 +776,7 @@
         "indexId": "vectors",
         "options": {}
       },
-      "type": "CUSTOM.opensearch",
+      "type": "n8n-nodes-opensearch.opensearch",
       "typeVersion": 1,
       "position": [
         3808,
@@ -849,7 +849,7 @@
         "id": "={{ $json._id }}",
         "options": {}
       },
-      "type": "CUSTOM.vectorStoreOpenSearch",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
       "typeVersion": 1.3,
       "position": [
         3424,
@@ -1129,7 +1129,7 @@
         "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', `Search term to find in documents`, 'string') }}",
         "options": {}
       },
-      "type": "CUSTOM.opensearchTool",
+      "type": "n8n-nodes-opensearch.opensearchTool",
       "typeVersion": 1,
       "position": [
         4960,

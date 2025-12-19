@@ -87,6 +87,13 @@ Import these into your n8n instance to see examples of all operations including 
 
 ## Version History
 
+### 0.2.5 (2025-12-19)
+- Fixed PostgreSQL/MySQL compatibility for VectorStoreOpenSearch node versioning
+- Migrated to `@n8n/node-cli` for build tooling
+- Added dark icon variants for theme support
+- Improved UX: cleaner operation names, better descriptions, proper delete output format
+- Moved codex metadata to separate `.node.json` files (scaffold pattern)
+
 ### 0.2.4 (2025-12-18)
 - Fixed module resolution issue preventing installation via n8n community package installer
 - Replaced `@langchain/community` OpenSearch vectorstore with custom implementation to avoid dependency conflicts

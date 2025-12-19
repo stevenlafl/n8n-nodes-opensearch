@@ -43,7 +43,6 @@ describe('handleRetrieveOperation', () => {
 				displayName: 'Test Vector Store',
 				name: 'testVectorStore',
 				description: 'Vector store for testing',
-				docsUrl: 'https://example.com',
 				icon: 'file:testIcon.svg',
 			},
 			sharedFields: [],

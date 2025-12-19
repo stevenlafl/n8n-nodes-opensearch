@@ -96,7 +96,7 @@ describe('handleInsertOperation', () => {
 		mockContext.getExecutionCancelSignal.mockReturnValue(mockAbortSignal);
 		mockContext.getInputConnectionData.mockResolvedValue(mockJsonLoader);
 		mockContext.getNode.mockReturnValue({
-			typeVersion: 1.1,
+			typeVersion: 2,
 			id: '',
 			name: '',
 			type: '',
@@ -118,7 +118,6 @@ describe('handleInsertOperation', () => {
 				displayName: 'Test Vector Store',
 				name: 'testVectorStore',
 				description: 'Vector store for testing',
-				docsUrl: 'https://example.com',
 				icon: 'file:testIcon.svg',
 			},
 			sharedFields: [],
@@ -144,7 +143,7 @@ describe('handleInsertOperation', () => {
 		// Should process each item
 		expect(result).toHaveLength(3);
 
-		// Should call populateVectorStore for batch processing (version 1.1)
+		// Should call populateVectorStore for batch processing (version 2+)
 		expect(mockArgs.populateVectorStore).toHaveBeenCalledTimes(1);
 
 		// Should log AI event for each item
@@ -211,7 +210,7 @@ describe('handleInsertOperation', () => {
 		);
 	});
 
-	it('should batch documents when node version is 1.1 and above', async () => {
+	it('should batch documents when node version is 2 and above', async () => {
 		// Create more documents to test batching
 		const manyItems = Array(10)
 			.fill(null)

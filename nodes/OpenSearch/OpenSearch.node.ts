@@ -26,7 +26,7 @@ export class OpenSearch implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'OpenSearch',
 		name: 'opensearch',
-		icon: 'file:opensearch.svg',
+		icon: { light: 'file:opensearch.svg', dark: 'file:opensearch.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
@@ -35,21 +35,6 @@ export class OpenSearch implements INodeType {
 			name: 'OpenSearch',
 		},
 		usableAsTool: true,
-		codex: {
-			categories: ['Data & Storage'],
-			subcategories: {
-				'Data & Storage': ['Search'],
-			},
-			alias: ['elastic', 'search', 'elasticsearch', 'opensearch'],
-			resources: {
-				primaryDocumentation: [
-					{
-						url: 'https://opensearch.org/docs/latest/',
-					},
-				],
-			},
-		},
-		// eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
 		inputs: [NodeConnectionTypes.Main],
 		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
 		outputs: [NodeConnectionTypes.Main],
@@ -121,7 +106,8 @@ export class OpenSearch implements INodeType {
 						});
 					} else {
 						const endpoint = `/${indexId}/_doc/${documentId}`;
-						responseData = await openSearchApiRequest.call(this, 'DELETE', endpoint);
+						await openSearchApiRequest.call(this, 'DELETE', endpoint);
+						responseData = { deleted: true };
 					}
 				} else if (operation === 'get') {
 					// ----------------------------------------
@@ -535,14 +521,14 @@ export class OpenSearch implements INodeType {
 						}
 
 						if (indexExists) {
-							responseData = await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
-							responseData = { success: true };
+							await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
+							responseData = { deleted: true };
 						} else {
-							responseData = { success: true, skipped: true };
+							responseData = { deleted: true, skipped: true };
 						}
 					} else {
-						responseData = await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
-						responseData = { success: true };
+						await openSearchApiRequest.call(this, 'DELETE', `/${indexId}`);
+						responseData = { deleted: true };
 					}
 				} else if (operation === 'get') {
 					// ----------------------------------------

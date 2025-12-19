@@ -33,14 +33,15 @@ export class OpenSearchApi implements ICredentialType {
 			name: 'baseUrl',
 			type: 'string',
 			default: '',
-			placeholder: 'https://mydeployment.es.us-central1.gcp.cloud.es.io:9243',
-			description: "Referred to as Elasticsearch 'endpoint' in the Elastic deployment dashboard",
+			placeholder: 'e.g. https://mydeployment.es.us-central1.gcp.cloud.es.io:9243',
+			description: 'The base URL of your OpenSearch cluster',
 		},
 		{
 			displayName: 'Ignore SSL Issues',
 			name: 'ignoreSSLIssues',
 			type: 'boolean',
 			default: false,
+			description: 'Whether to ignore SSL certificate validation issues',
 		},
 	];
 

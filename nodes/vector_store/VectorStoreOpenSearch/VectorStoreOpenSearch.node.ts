@@ -217,14 +217,11 @@ const retrieveFields: INodeProperties[] = [
 export class VectorStoreOpenSearch extends createVectorStoreNode({
 	meta: {
 		description: 'Work with your data in OpenSearch for vector-based search',
-		icon: 'file:opensearch.svg',
+		icon: { light: 'file:opensearch.svg', dark: 'file:opensearch.dark.svg' },
 		displayName: 'OpenSearch Vector Store',
 		name: 'vectorStoreOpenSearch',
 		credentials: [{ name: 'openSearchApi', required: true }],
-		docsUrl:
-			'https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.vectorstoreopensearch/',
 		operationModes: ['load', 'insert', 'retrieve', 'update', 'retrieve-as-tool'],
-		alias: ['opensearch', 'vector', 'embedding', 'search'],
 	},
 	methods: { listSearch: { openSearchIndexSearch } },
 	sharedFields,

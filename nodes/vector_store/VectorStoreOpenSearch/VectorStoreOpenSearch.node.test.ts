@@ -122,7 +122,7 @@ describe('VectorStoreOpenSearch Node', () => {
 	});
 
 	describe('Retrieve As Tool Mode', () => {
-		it('should have toolName field for retrieve-as-tool mode (version <= 1.2)', () => {
+		it('should have toolName field for retrieve-as-tool mode (version <= 3)', () => {
 			const toolNameField = nodeInstance.description.properties.find(
 				(prop) => {
 					if (prop.name !== 'toolName') return false;

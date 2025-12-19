@@ -91,7 +91,6 @@ describe('handleUpdateOperation', () => {
 				displayName: 'Test Vector Store',
 				name: 'testVectorStore',
 				description: 'Vector store for testing',
-				docsUrl: 'https://example.com',
 				icon: 'file:testIcon.svg',
 				operationModes: ['load', 'insert', 'retrieve', 'retrieve-as-tool', 'update'],
 			},

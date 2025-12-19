@@ -8,4 +8,3 @@ yarn.lock
 .vscode/launch.json
 n8n-reference
 coverage
-.tsbuildinfo

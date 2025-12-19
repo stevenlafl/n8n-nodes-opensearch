@@ -22,14 +22,10 @@ export interface NodeMeta {
 	name: string;
 	hidden?: boolean;
 	description: string;
-	docsUrl: string;
 	icon: Icon;
 	iconColor?: ThemeIconColor;
 	credentials?: INodeCredentialDescription[];
 	operationModes?: NodeOperationMode[];
-	categories?: string[];
-	subcategories?: Record<string, string[]>;
-	alias?: string[];
 }
 
 export interface VectorStoreNodeConstructorArgs<T extends VectorStore = VectorStore> {

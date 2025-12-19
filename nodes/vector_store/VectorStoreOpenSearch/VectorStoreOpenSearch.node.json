@@ -1,12 +1,14 @@
 {
-	"node": "n8n-nodes-opensearch.openSearch",
-	"nodeVersion": "1",
+	"node": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+	"nodeVersion": "2",
 	"codexVersion": "1.0",
-	"categories": ["Data & Storage"],
+	"categories": ["AI"],
 	"subcategories": {
-		"Data & Storage": ["Search"]
+		"AI": ["Vector Stores", "Tools", "Root Nodes"],
+		"Vector Stores": ["Other Vector Stores"],
+		"Tools": ["Other Tools"]
 	},
-	"alias": ["elastic", "search", "elasticsearch", "opensearch"],
+	"alias": ["opensearch", "vector", "embedding", "search"],
 	"resources": {
 		"credentialDocumentation": [
 			{

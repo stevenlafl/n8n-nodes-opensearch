@@ -42,27 +42,14 @@ export const createVectorStoreNode = <T extends VectorStore = VectorStore>(
 			icon: args.meta.icon,
 			iconColor: args.meta.iconColor,
 			group: ['transform'],
-			// 1.2 has changes to VectorStoreInMemory node.
-			// 1.3 drops `toolName` and uses node name as the tool name.
-			version: [1, 1.1, 1.2, 1.3],
+			// 1.1: Added embedding batch size
+			// 1.2: Changes to VectorStoreInMemory node
+			// 1.3: Drops `toolName` and uses node name as the tool name
+			// 2: Same as 1.3, added for PostgreSQL compatibility (Math.max returns integer)
+			// Note: Keep 1.1, 1.2, 1.3 for backward compatibility with existing workflows
+			version: [1, 1.1, 1.2, 1.3, 2],
 			defaults: {
 				name: args.meta.displayName,
-			},
-			codex: {
-				categories: args.meta.categories ?? ['AI'],
-				subcategories: args.meta.subcategories ?? {
-					AI: ['Vector Stores', 'Tools', 'Root Nodes'],
-					'Vector Stores': ['Other Vector Stores'],
-					Tools: ['Other Tools'],
-				},
-				alias: args.meta.alias ?? [],
-				resources: {
-					primaryDocumentation: [
-						{
-							url: args.meta.docsUrl,
-						},
-					],
-				},
 			},
 			credentials: args.meta.credentials,
 

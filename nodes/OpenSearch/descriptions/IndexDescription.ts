@@ -17,21 +17,25 @@ export const indexOperations: INodeProperties[] = [
 			{
 				name: 'Create',
 				value: 'create',
-				action: 'Create an index',
+				description: 'Create a new index',
+				action: 'Create index',
 			},
 			{
 				name: 'Delete',
 				value: 'delete',
-				action: 'Delete an index',
+				description: 'Remove an index permanently',
+				action: 'Delete index',
 			},
 			{
 				name: 'Get',
 				value: 'get',
-				action: 'Get an index',
+				description: 'Retrieve index information',
+				action: 'Get index',
 			},
 			{
 				name: 'Get Many',
 				value: 'getAll',
+				description: 'Retrieve a list of indices',
 				action: 'Get many indices',
 			},
 		],

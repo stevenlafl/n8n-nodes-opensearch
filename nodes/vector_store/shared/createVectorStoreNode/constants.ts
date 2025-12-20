@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { NodeConnectionTypes } from 'n8n-workflow';
 import type { INodePropertyOptions } from 'n8n-workflow';

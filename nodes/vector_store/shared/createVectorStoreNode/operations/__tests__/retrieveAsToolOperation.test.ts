@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import { DynamicTool } from '@langchain/core/tools';
 import type { Document } from '@langchain/core/documents';
 import type { Embeddings } from '@langchain/core/embeddings';

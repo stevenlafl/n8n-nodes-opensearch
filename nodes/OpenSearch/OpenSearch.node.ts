@@ -36,7 +36,6 @@ export class OpenSearch implements INodeType {
 		},
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
-		// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
@@ -76,7 +75,7 @@ export class OpenSearch implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as 'document' | 'index';
 		const operation = this.getNodeParameter('operation', 0);
 
-		// biome-ignore lint/suspicious/noExplicitAny: responseData holds various response types throughout execution
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let responseData: any;
 
 		let bulkBody: IDataObject = {};
@@ -260,7 +259,7 @@ export class OpenSearch implements INodeType {
 						if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
 							try {
 								parsedQuery = jsonParse(trimmed, { errorMessage: "Invalid JSON in 'Query' parameter" }) as IDataObject;
-							} catch (error) {
+							} catch {
 								throw new NodeApiError(this.getNode(), {
 									message: 'Invalid query JSON',
 									description: 'The query parameter must be valid JSON. Example: {"query": {"match_all": {}}}',
@@ -289,7 +288,8 @@ export class OpenSearch implements INodeType {
 
 					// Handle options
 					if (Object.keys(options).length) {
-						const { useScroll, scrollTime, ...rest } = options;
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { useScroll: _useScroll, scrollTime: _scrollTime, ...rest } = options;
 						Object.assign(qs, rest);
 						qs._source = true;
 					}
@@ -471,7 +471,8 @@ export class OpenSearch implements INodeType {
 					const skipIfExists = additionalFields.skipIfExists as boolean;
 
 					if (Object.keys(additionalFields).length) {
-						const { aliases, mappings, settings, skipIfExists: _, ...rest } = additionalFields;
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { aliases, mappings, settings, skipIfExists: _skipIfExists, ...rest } = additionalFields;
 						if (aliases) Object.assign(body, { aliases: jsonParse(aliases as string) });
 						if (mappings) Object.assign(body, { mappings: jsonParse(mappings as string) });
 						if (settings) Object.assign(body, { settings: jsonParse(settings as string) });
@@ -484,7 +485,7 @@ export class OpenSearch implements INodeType {
 						try {
 							await openSearchApiRequest.call(this, 'HEAD', `/${indexId}`);
 							indexExists = true;
-						} catch (error) {
+						} catch {
 							// Index doesn't exist
 							indexExists = false;
 						}
@@ -492,11 +493,13 @@ export class OpenSearch implements INodeType {
 						if (indexExists) {
 							responseData = { id: indexId, acknowledged: true, skipped: true };
 						} else {
-							const { index: _index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							const { index: __index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
 							responseData = { id: indexId, ...rest };
 						}
 					} else {
-						const { index: _index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { index: __index, ...rest } = await openSearchApiRequest.call(this, 'PUT', `/${indexId}`, body, qs);
 						responseData = { id: indexId, ...rest };
 					}
 				} else if (operation === 'delete') {
@@ -515,7 +518,7 @@ export class OpenSearch implements INodeType {
 						try {
 							await openSearchApiRequest.call(this, 'HEAD', `/${indexId}`);
 							indexExists = true;
-						} catch (error) {
+						} catch {
 							// Index doesn't exist, skip deletion
 							indexExists = false;
 						}

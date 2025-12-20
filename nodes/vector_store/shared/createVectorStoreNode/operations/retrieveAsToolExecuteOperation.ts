@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import type { Embeddings } from '@langchain/core/embeddings';
 import type { BaseDocumentCompressor } from '@langchain/core/retrievers/document_compressors';

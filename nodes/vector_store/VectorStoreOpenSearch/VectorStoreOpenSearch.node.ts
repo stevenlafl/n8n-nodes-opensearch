@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import { OpenSearchClientArgs, OpenSearchVectorStore } from '../../../utils/OpenSearchVectorStore';
 import {
 	Client as OpenSearchClient,
@@ -67,7 +68,7 @@ async function openSearchIndexSearch(this: ILoadOptionsFunctions) {
 			}));
 
 		return { results };
-	} catch (error) {
+	} catch {
 		// Return empty results if we can't fetch indices
 		return { results: [] };
 	}
@@ -243,7 +244,8 @@ export class VectorStoreOpenSearch extends createVectorStoreNode({
 				index: indexName,
 				id: documentId,
 			});
-		} catch (error) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (error: any) {
 			// Ignore 404 errors (document not found) - this allows update to work as upsert
 			if (error?.meta?.statusCode !== 404) {
 				throw error;
@@ -296,7 +298,7 @@ export class VectorStoreOpenSearch extends createVectorStoreNode({
 			try {
 				await osClient.indices.delete({ index: indexName });
 				context.logger.info(`Deleted index: ${indexName}`);
-			} catch (error) {
+			} catch {
 				// Index might not exist yet, which is fine - it will be created
 				context.logger.debug(`Could not delete index ${indexName} (may not exist yet)`);
 			}

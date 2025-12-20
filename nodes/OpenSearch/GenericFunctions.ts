@@ -41,7 +41,7 @@ export async function openSearchBulkApiRequest(this: IExecuteFunctions, body: ID
 
 	if (response.statusCode > 299) {
 		if (this.continueOnFail()) {
-			return Object.values(body).map((_) => ({ error: response.body.error }));
+			return Object.keys(body).map(() => ({ error: response.body.error }));
 		}
 		throw new NodeApiError(this.getNode(), { error: response.body.error } as JsonObject);
 	}
@@ -126,7 +126,7 @@ export async function openSearchApiRequestAllItems(
 		)?.id as string;
 
 		let returnData: IDataObject[] = [];
-		// biome-ignore lint/suspicious/noExplicitAny: responseData structure varies during pagination
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let responseData: any;
 		let searchAfter: string[] = [];
 
@@ -195,7 +195,7 @@ export async function openSearchApiRequestWithScroll(
 ): Promise<IDataObject[]> {
 	try {
 		let returnData: IDataObject[] = [];
-		// biome-ignore lint/suspicious/noExplicitAny: responseData structure varies during pagination
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let responseData: any;
 		let scrollId: string | undefined;
 
@@ -237,7 +237,7 @@ export async function openSearchApiRequestWithScroll(
 		if (scrollId) {
 			try {
 				await openSearchApiRequest.call(this, 'DELETE', '/_search/scroll', { scroll_id: scrollId });
-			} catch (error) {
+			} catch {
 				// Ignore cleanup errors
 			}
 		}

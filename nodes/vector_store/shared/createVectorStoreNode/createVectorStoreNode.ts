@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import type { Embeddings } from '@langchain/core/embeddings';
 import type { VectorStore } from '@langchain/core/vectorstores';
@@ -9,7 +10,6 @@ import type {
 	SupplyData,
 	ISupplyDataFunctions,
 	INodeType,
-	INodeProperties,
 } from 'n8n-workflow';
 
 import { getConnectionHintNoticeField } from '../../../../utils/sharedFields';

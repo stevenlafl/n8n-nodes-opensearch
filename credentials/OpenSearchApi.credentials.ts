@@ -12,6 +12,8 @@ export class OpenSearchApi implements ICredentialType {
 
 	documentationUrl = 'https://docs.n8n.io/credentials/openSearchApi/';
 
+	icon = { light: 'file:opensearch.svg', dark: 'file:opensearch.dark.svg' } as const;
+
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Username',

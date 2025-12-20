@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { Document } from '@langchain/core/documents';
 import type { Embeddings } from '@langchain/core/embeddings';
@@ -142,12 +143,16 @@ export async function handleUpdateOperation<T extends VectorStore = VectorStore>
 
 	// Check if index exists and get its dimension
 	try {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const indexInfo = await (vectorStore as any).client?.indices?.getMapping({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			index: (vectorStore as any).indexName,
 		});
 
 		if (indexInfo?.body) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const indexName = (vectorStore as any).indexName;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const vectorFieldName = (vectorStore as any).vectorFieldName || 'embedding';
 			const mapping = indexInfo.body[indexName]?.mappings?.properties?.[vectorFieldName];
 

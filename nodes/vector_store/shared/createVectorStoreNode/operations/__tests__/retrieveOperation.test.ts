@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import type { Embeddings } from '@langchain/core/embeddings';
 import type { BaseDocumentCompressor } from '@langchain/core/retrievers/document_compressors';
 import type { VectorStore } from '@langchain/core/vectorstores';

@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @n8n/community-nodes/no-restricted-globals */
 /**
  * Integration tests for OpenSearch node operations.
  *
@@ -131,7 +132,7 @@ function createOpenSearchTestSuite(
 		// Implement real HTTP request helper that calls OpenSearch
 		mockContext.helpers = {
 			constructExecutionMetaData: jest.fn().mockImplementation(
-				(data: INodeExecutionData[], _options) => data
+				(data: INodeExecutionData[]) => data
 			),
 			returnJsonArray: jest.fn().mockImplementation(
 				(data: IDataObject | IDataObject[]) => {

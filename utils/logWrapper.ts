@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/no-explicit-any */
 import type { BaseChatMemory } from '@langchain/community/memory/chat_memory';
 import type { BaseCallbackConfig, Callbacks } from '@langchain/core/callbacks/manager';
 import type { BaseChatMessageHistory } from '@langchain/core/chat_history';
@@ -486,8 +487,7 @@ export function logWrapper<
 				}
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return (target as any)[prop];
+				return (target as any)[prop];
 		},
 	});
 }

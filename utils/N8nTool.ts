@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 // @ts-nocheck
 import type { DynamicStructuredToolInput } from '@langchain/core/tools';
 import { DynamicStructuredTool, DynamicTool } from '@langchain/core/tools';

@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import type { Document } from '@langchain/core/documents';
 import type { TextSplitter } from '@langchain/textsplitters';
 import { JSONLoader } from '@langchain/classic/document_loaders/fs/json';

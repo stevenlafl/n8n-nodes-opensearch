@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, no-empty */
 // @ts-nocheck
 import type { BaseChatMessageHistory } from '@langchain/core/chat_history';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';

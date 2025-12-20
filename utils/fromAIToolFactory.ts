@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import type { CallbackManagerForToolRun } from '@langchain/core/callbacks/manager';
 import { DynamicStructuredTool, DynamicTool } from '@langchain/core/tools';

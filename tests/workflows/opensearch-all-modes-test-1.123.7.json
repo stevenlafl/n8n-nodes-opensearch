@@ -327,7 +327,7 @@
         "options": {}
       },
       "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         3520,
         2208
@@ -369,7 +369,7 @@
         1616
       ],
       "webhookId": "chat-retrieve-webhook",
-      "typeVersion": 1.1
+      "typeVersion": 2
     },
     {
       "parameters": {
@@ -381,7 +381,7 @@
         "options": {}
       },
       "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         4064,
         2544
@@ -422,7 +422,7 @@
         "options": {}
       },
       "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
-      "typeVersion": 1.3,
+      "typeVersion": 2,
       "position": [
         5616,
         2416
@@ -530,7 +530,7 @@
         "amount": 1
       },
       "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         3760,
         1024
@@ -667,7 +667,7 @@
     {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         4768,
         2416
@@ -685,7 +685,7 @@
         "options": {}
       },
       "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
-      "typeVersion": 1.3,
+      "typeVersion": 2,
       "position": [
         4656,
         2576
@@ -850,7 +850,7 @@
         "options": {}
       },
       "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
-      "typeVersion": 1.3,
+      "typeVersion": 2,
       "position": [
         3424,
         1568
@@ -885,7 +885,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         4736,
         2784
@@ -904,7 +904,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         4160,
         2768
@@ -923,7 +923,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         3504,
         1792
@@ -942,7 +942,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         5728,
         2576
@@ -1025,7 +1025,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         3600,
         2384
@@ -1044,7 +1044,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.1,
+      "typeVersion": 2,
       "position": [
         2928,
         2368
@@ -1082,7 +1082,7 @@
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
-      "typeVersion": 1.4,
+      "typeVersion": 2,
       "position": [
         3936,
         2192

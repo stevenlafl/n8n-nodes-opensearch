@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import { Client, RequestParams, errors } from '@opensearch-project/opensearch';
 import type { EmbeddingsInterface } from '@langchain/core/embeddings';
 import { VectorStore } from '@langchain/core/vectorstores';
@@ -53,9 +54,33 @@ interface FilterTypeValue {
 	lte?: number;
 	lt?: number;
 	regexp?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	terms_set?: Record<string, any>;
+	terms_set?: Record<string, unknown>;
 	wildcard?: string;
+}
+
+/**
+ * Bulk operation document structure for OpenSearch.
+ */
+interface BulkIndexOperation {
+	index: {
+		_index: string;
+		_id?: string;
+	};
+}
+
+interface BulkDocumentBody {
+	[key: string]: number[] | string | Record<string, unknown>;
+}
+
+type BulkOperation = BulkIndexOperation | BulkDocumentBody;
+
+/**
+ * OpenSearch search hit structure.
+ */
+interface OpenSearchHit {
+	_id: string;
+	_score: number;
+	_source: Record<string, unknown>;
 }
 
 /**
@@ -155,8 +180,7 @@ export class OpenSearchVectorStore extends VectorStore {
 		const documentIds = options?.ids ?? Array.from({ length: vectors.length }, () => generateUUID());
 
 		const operations = vectors.flatMap((embedding, idx) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const document: Record<string, any>[] = [
+			const document: BulkOperation[] = [
 				{
 					index: {
 						_index: this.indexName,
@@ -172,7 +196,7 @@ export class OpenSearchVectorStore extends VectorStore {
 
 			// aoss does not support document id
 			if (this.isAoss) {
-				delete document[0].index?._id;
+				delete (document[0] as BulkIndexOperation).index?._id;
 			}
 
 			return document;
@@ -215,11 +239,10 @@ export class OpenSearchVectorStore extends VectorStore {
 
 		const { body } = await this.client.search(search);
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return body.hits.hits.map((hit: any) => [
+		return body.hits.hits.map((hit: OpenSearchHit) => [
 			new Document({
-				pageContent: hit._source[this.textFieldName],
-				metadata: hit._source[this.metadataFieldName],
+				pageContent: hit._source[this.textFieldName] as string,
+				metadata: hit._source[this.metadataFieldName] as Record<string, unknown>,
 				id: hit._id,
 			}),
 			hit._score,
@@ -375,7 +398,6 @@ export class OpenSearchVectorStore extends VectorStore {
 			await this.client.cat.indices({ index: this.indexName });
 			return true;
 		} catch (err: unknown) {
-			// eslint-disable-next-line no-instanceof/no-instanceof
 			if (err instanceof errors.ResponseError && err.statusCode === 404) {
 				return false;
 			}

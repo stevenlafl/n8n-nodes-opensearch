@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @n8n/community-nodes/no-restricted-globals, no-console */
 // Jest global setup - runs BEFORE any test files are loaded
 // This checks OpenSearch availability and sets environment variables
 

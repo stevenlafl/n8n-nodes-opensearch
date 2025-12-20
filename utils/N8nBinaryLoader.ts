@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv';
 import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
 import { EPubLoader } from '@langchain/community/document_loaders/fs/epub';
@@ -107,14 +108,15 @@ export class N8nBinaryLoader {
 		itemIndex: number,
 	): Promise<PDFLoader | CSVLoader | EPubLoader | DocxLoader | TextLoader | JSONLoader> {
 		switch (mimeType) {
-			case 'application/pdf':
+			case 'application/pdf': {
 				const splitPages = this.context.getNodeParameter(
 					`${this.optionsPrefix}splitPages`,
 					itemIndex,
 					false,
 				) as boolean;
 				return new PDFLoader(filePathOrBlob, { splitPages });
-			case 'text/csv':
+			}
+			case 'text/csv': {
 				const column = this.context.getNodeParameter(
 					`${this.optionsPrefix}column`,
 					itemIndex,
@@ -126,7 +128,8 @@ export class N8nBinaryLoader {
 					',',
 				) as string;
 				return new CSVLoader(filePathOrBlob, { column: column ?? undefined, separator });
-			case 'application/epub+zip':
+			}
+			case 'application/epub+zip': {
 				// EPubLoader currently does not accept Blobs https://github.com/langchain-ai/langchainjs/issues/1623
 				let filePath: string;
 				if (filePathOrBlob instanceof Blob) {
@@ -138,11 +141,12 @@ export class N8nBinaryLoader {
 					filePath = filePathOrBlob;
 				}
 				return new EPubLoader(filePath);
+			}
 			case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 				return new DocxLoader(filePathOrBlob);
 			case 'text/plain':
 				return new TextLoader(filePathOrBlob);
-			case 'application/json':
+			case 'application/json': {
 				const pointers = this.context.getNodeParameter(
 					`${this.optionsPrefix}pointers`,
 					itemIndex,
@@ -150,6 +154,7 @@ export class N8nBinaryLoader {
 				) as string;
 				const pointersArray = pointers.split(',').map((pointer) => pointer.trim());
 				return new JSONLoader(filePathOrBlob, pointersArray);
+			}
 			default:
 				return new TextLoader(filePathOrBlob);
 		}

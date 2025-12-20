@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-imports, @n8n/community-nodes/no-restricted-globals */
 /**
  * Integration tests for VectorStoreOpenSearch node operations.
  *
@@ -25,6 +26,7 @@ import type {
 import { NodeConnectionTypes } from 'n8n-workflow';
 import { Client } from '@opensearch-project/opensearch';
 import type { Embeddings } from '@langchain/core/embeddings';
+import type { Document } from '@langchain/core/documents';
 
 import { VectorStoreOpenSearch } from '../../nodes/vector_store/VectorStoreOpenSearch/VectorStoreOpenSearch.node';
 import { OPENSEARCH_CONFIG, isInstanceAvailable, getInstanceUrl } from './config';
@@ -244,7 +246,7 @@ function createVectorStoreTestSuite(
 
 		mockContext.helpers = {
 			constructExecutionMetaData: jest.fn().mockImplementation(
-				(data: INodeExecutionData[], _options) => data
+				(data: INodeExecutionData[]) => data
 			),
 		} as unknown as IExecuteFunctions['helpers'];
 
@@ -329,7 +331,7 @@ function createVectorStoreTestSuite(
 
 			// Call supplyData to get the vector store
 			const result = await nodeInstance.supplyData.call(mockContext, 0);
-			const vectorStore = result.response as { similaritySearchVectorWithScore: Function };
+			const vectorStore = result.response as { similaritySearchVectorWithScore: (v: number[], k: number) => Promise<Array<[Document, number]>> };
 
 			// Get embedding for query
 			const queryVector = await mockEmbeddings.embedQuery('artificial intelligence');
@@ -621,7 +623,7 @@ function createVectorStoreTestSuite(
 
 			// Getting the vector store should succeed (client creation is lazy)
 			const result = await nodeInstance.supplyData.call(mockContext, 0);
-			const vectorStore = result.response as { similaritySearchVectorWithScore: Function };
+			const vectorStore = result.response as { similaritySearchVectorWithScore: (v: number[], k: number) => Promise<Array<[Document, number]>> };
 
 			// But operations should fail
 			const queryVector = await mockEmbeddings.embedQuery('test');

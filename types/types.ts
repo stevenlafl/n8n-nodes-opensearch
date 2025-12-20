@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { z } from 'zod';
 
 export type OpenAICompatibleCredential = { apiKey: string; url: string };

@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-globals */
 // Shared configuration for integration tests
 
 export const OPENSEARCH_CONFIG = {

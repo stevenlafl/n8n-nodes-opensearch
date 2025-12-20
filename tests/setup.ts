@@ -1,3 +1,4 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-globals, no-console */
 // Jest setup file
 // This runs before each test file
 

@@ -44,7 +44,7 @@ describe('handleRetrieveAsToolOperation', () => {
 		mockContext = mock<ISupplyDataFunctions>();
 		mockContext.getNode.mockReturnValue({
 			id: 'testNode',
-			typeVersion: 4,
+			typeVersion: 1.3,
 			name: 'Test Knowledge Base',
 			type: 'testVectorStore',
 			parameters: nodeParameters as INodeParameters,
@@ -98,10 +98,10 @@ describe('handleRetrieveAsToolOperation', () => {
 		jest.clearAllMocks();
 	});
 
-	it('should create a tool with the correct name and description on version <= 3', async () => {
+	it('should create a tool with the correct name and description on version < 1.3', async () => {
 		mockContext.getNode.mockReturnValueOnce({
 			id: 'testNode',
-			typeVersion: 3,
+			typeVersion: 1.2,
 			name: 'Test Knowledge Base',
 			type: 'testVectorStore',
 			parameters: nodeParameters as INodeParameters,
@@ -126,7 +126,7 @@ describe('handleRetrieveAsToolOperation', () => {
 		expect(logWrapper).toHaveBeenCalledWith(expect.any(DynamicTool), mockContext);
 	});
 
-	it('should create a tool with the correct name and description on version > 3', async () => {
+	it('should create a tool with the correct name and description on version >= 1.3', async () => {
 		const result = (await handleRetrieveAsToolOperation(
 			mockContext,
 			mockArgs,

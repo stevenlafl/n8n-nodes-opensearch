@@ -487,7 +487,7 @@ function createOpenSearchTestSuite(
 				const mockContext = createMockExecuteFunctions(params);
 				const result = await nodeInstance.execute.call(mockContext);
 
-				expect(result[0][0].json).toHaveProperty('result', 'deleted');
+				expect(result[0][0].json).toHaveProperty('deleted', true);
 
 				// Verify deletion
 				await expect(
@@ -518,7 +518,7 @@ function createOpenSearchTestSuite(
 			const mockContext = createMockExecuteFunctions(params);
 			const result = await nodeInstance.execute.call(mockContext);
 
-			expect(result[0][0].json).toHaveProperty('success', true);
+			expect(result[0][0].json).toHaveProperty('deleted', true);
 
 			// Verify deletion
 			const exists = await client.indices.exists({ index: 'temp-delete-test' });
@@ -544,7 +544,7 @@ function createOpenSearchTestSuite(
 			const result = await nodeInstance.execute.call(mockContext);
 
 			expect(result[0]).toHaveLength(1);
-			expect(result[0][0].json).toHaveProperty('success', true);
+			expect(result[0][0].json).toHaveProperty('deleted', true);
 			expect(result[0][0].json).toHaveProperty('skipped', true);
 		});
 

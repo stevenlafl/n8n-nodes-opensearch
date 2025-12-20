@@ -26,7 +26,7 @@ export async function handleRetrieveAsToolOperation<T extends VectorStore = Vect
 	const node = context.getNode();
 	const { typeVersion } = node;
 	const toolName =
-		typeVersion < 4
+		typeVersion < 1.3
 			? (context.getNodeParameter('toolName', itemIndex) as string)
 			: nodeNameToToolName(node);
 

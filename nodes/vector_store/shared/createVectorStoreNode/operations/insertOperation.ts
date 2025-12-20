@@ -63,8 +63,8 @@ export async function handleInsertOperation<T extends VectorStore = VectorStore>
 		logAiEvent(context, 'ai-vector-store-populated');
 	}
 
-	// For version 2+ (was 1.1), we run the populateVectorStore in batches
-	if (nodeVersion >= 2) {
+	// For version 1.1+, we run the populateVectorStore in batches
+	if (nodeVersion >= 1.1) {
 		const embeddingBatchSize =
 			(context.getNodeParameter('embeddingBatchSize', 0, 200) as number) ?? 200;
 

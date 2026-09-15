@@ -20,6 +20,10 @@ pnpm test:unit
 # Run all tests including integration (requires Docker)
 docker compose -f docker-compose.test.yml --profile v3 up -d
 pnpm test
+
+# Install the packed package into fresh n8n containers and run a workflow through each
+pnpm build && pnpm pack --pack-destination /tmp
+scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz
 ```
 
 ## Test Types
@@ -43,6 +47,9 @@ Test files are colocated with source code:
 - `nodes/OpenSearch/GenericFunctions.test.ts`
 - `nodes/OpenSearch/OpenSearch.node.test.ts`
 - `nodes/vector_store/VectorStoreOpenSearch/VectorStoreOpenSearch.node.test.ts`
+- `nodes/vector_store/shared/createVectorStoreNode/operations/__tests__/*.test.ts`
+
+`tests/runtimeImports.test.ts` checks every source file only value-imports `@langchain/core`, `n8n-workflow`, `zod`, `lodash` or `@opensearch-project/opensearch`. n8n installs community packages with dev and peer dependencies stripped and resolves the rest through its own `node_modules`, and since n8n 2.29 that exposes no other langchain package. Type-only imports are fine, they are erased at build time.
 
 ### Integration Tests
 
@@ -53,7 +60,7 @@ Integration tests require a running OpenSearch instance and test actual API inte
 docker compose -f docker-compose.test.yml --profile v3 up -d
 
 # Wait for OpenSearch to be healthy
-curl -s http://localhost:9200
+curl -sk https://localhost:9200 -u "admin:MyStr0ng#Pass!2024"
 
 # Run integration tests
 pnpm test:integration
@@ -62,6 +69,40 @@ pnpm test:integration
 Test files:
 - `tests/integration/OpenSearch.integration.test.ts`
 - `tests/integration/VectorStore.integration.test.ts`
+
+### n8n Install Tests
+
+`scripts/test-n8n-versions.sh` is the closest thing to a user installing the package from the community nodes UI. For each n8n version it:
+
+1. brings up the `v3` and `install-test` profiles of `docker-compose.test.yml` with a fresh OpenSearch, a stub OpenAI API (`scripts/n8n-integration/fake-openai.py`: deterministic word-hash embeddings and canned chat completions that call the first tool offered, so no API key or model is needed) and an n8n container of that version with nothing from the repo mounted
+2. installs the packed tarball into `~/.n8n/nodes` exactly like n8n's `CommunityPackagesService` does: dev, peer and optional dependencies stripped, then `npm install`
+3. imports `scripts/n8n-integration/credentials.json` and `scripts/n8n-integration/workflow.json`, which covers every operation of both nodes: index create/get/get all/delete, document create/get/update/get all/search/delete, vector store insert/load/update, the vector store as a retriever behind a Question and Answer chain, the vector store as an agent tool, and the OpenSearch node as an agent tool with `$fromAI`
+4. runs the workflow with `n8n execute`, reads the execution back from n8n's database with `scripts/n8n-integration/dump-execution.js` and checks every node's output with `scripts/n8n-integration/assert.js` (right document returned for "cats" and "owls", tools actually invoked, tool results visible in the agent output)
+5. tears everything down, volumes included, and moves on to the next version
+
+```bash
+pnpm build && pnpm pack --pack-destination /tmp
+
+# All target versions, one after another
+scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz
+
+# One version
+scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz 2.38.7
+
+# Leave the containers up after a failure
+KEEP=1 scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz 2.38.7
+```
+
+The target versions live in `TARGET_VERSIONS` at the top of the script (`--list` prints them):
+
+| n8n | Why |
+|-----|-----|
+| 1.120.4 | Oldest reported install (issue #6), ships langchain 0.3 and no `@langchain/classic` |
+| 1.123.7 | Same as the `n8n-1x` compose service |
+| 2.1.0 | Same as the `n8n-2x` compose service |
+| 2.38.7 | pnpm layout since 2.29 where only `@langchain/core` is visible to community packages (issue #8) |
+
+The script shares container names with the manual environment below, so stop that first.
 
 ## OpenSearch Versions
 
@@ -80,10 +121,10 @@ The project supports both OpenSearch 2.x and 3.x. The key difference is k-NN eng
 docker compose -f docker-compose.test.yml --profile v3 up -d
 
 # Verify version
-curl -s http://localhost:9200 | jq '.version.number'
+curl -sk https://localhost:9200 -u "admin:MyStr0ng#Pass!2024" | jq '.version.number'
 
 # Check available k-NN engines
-curl -s http://localhost:9200/_plugins/_knn/stats | jq '.nodes[].lucene_initialized, .nodes[].faiss_initialized, .nodes[].nmslib_initialized'
+curl -sk https://localhost:9200/_plugins/_knn/stats -u "admin:MyStr0ng#Pass!2024" | jq '.nodes[].lucene_initialized, .nodes[].faiss_initialized, .nodes[].nmslib_initialized'
 
 # Run tests
 pnpm test:integration
@@ -95,11 +136,11 @@ docker compose -f docker-compose.test.yml --profile v3 down
 ### Testing with OpenSearch 2.x
 
 ```bash
-# Start OpenSearch 2.6.0
+# Start OpenSearch 2.19.0 (port 9201)
 docker compose -f docker-compose.test.yml --profile v2 up -d
 
 # Verify version
-curl -s http://localhost:9200 | jq '.version.number'
+curl -sk https://localhost:9201 -u "admin:MyStr0ng#Pass!2024" | jq '.version.number'
 
 # Run tests
 pnpm test:integration
@@ -110,7 +151,7 @@ docker compose -f docker-compose.test.yml --profile v2 down
 
 ## n8n Versions
 
-The project includes n8n containers for manual testing of the nodes in a real n8n environment.
+The project includes n8n containers for manual testing of the nodes in a real n8n environment. These mount the repo into n8n's `custom` directory, so they see the repo's own `node_modules`. That is convenient for development but hides missing dependencies, which is what the install tests above are for.
 
 ### Testing with n8n 2.x
 
@@ -195,8 +236,8 @@ Run tests against all combinations to ensure compatibility:
 |------------|-----|------|---------|
 | 3.0.0 | 2.1.0 | 5678 | `docker compose -f docker-compose.test.yml --profile v3 --profile n8n-2x up -d` |
 | 3.0.0 | 1.123.7 | 5679 | `docker compose -f docker-compose.test.yml --profile v3 --profile n8n-1x up -d` |
-| 2.6.0 | 2.1.0 | 5678 | `docker compose -f docker-compose.test.yml --profile v2 --profile n8n-2x up -d` |
-| 2.6.0 | 1.123.7 | 5679 | `docker compose -f docker-compose.test.yml --profile v2 --profile n8n-1x up -d` |
+| 2.19.0 | 2.1.0 | 5678 | `docker compose -f docker-compose.test.yml --profile v2 --profile n8n-2x up -d` |
+| 2.19.0 | 1.123.7 | 5679 | `docker compose -f docker-compose.test.yml --profile v2 --profile n8n-1x up -d` |
 
 ## Full Test Suite
 
@@ -210,18 +251,18 @@ echo "=== Running Unit Tests ==="
 pnpm test:unit
 
 echo "=== Testing OpenSearch 3.0.0 ==="
-docker compose -f docker-compose.test.yml --profile v3 up -d
-sleep 10
-curl -s http://localhost:9200 | jq '.version.number'
+docker compose -f docker-compose.test.yml --profile v3 up -d --wait
 pnpm test:integration
 docker compose -f docker-compose.test.yml --profile v3 down
 
-echo "=== Testing OpenSearch 2.6.0 ==="
-docker compose -f docker-compose.test.yml --profile v2 up -d
-sleep 10
-curl -s http://localhost:9200 | jq '.version.number'
+echo "=== Testing OpenSearch 2.19.0 ==="
+docker compose -f docker-compose.test.yml --profile v2 up -d --wait
 pnpm test:integration
 docker compose -f docker-compose.test.yml --profile v2 down
+
+echo "=== Testing fresh n8n installs ==="
+pnpm build && pnpm pack --pack-destination /tmp
+scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz
 
 echo "=== All Tests Passed ==="
 ```
@@ -231,11 +272,12 @@ echo "=== All Tests Passed ==="
 | Profile | Service | Description | Port |
 |---------|---------|-------------|------|
 | `v3` | opensearch | OpenSearch 3.0.0 (HTTPS) | 9200 |
-| `v2` | opensearch-2x | OpenSearch 2.6.0 (HTTPS) | 9201 |
+| `v2` | opensearch-2x | OpenSearch 2.19.0 (HTTPS) | 9201 |
 | `os-both` | opensearch + opensearch-2x | Both OpenSearch versions | 9200, 9201 |
-| `n8n-2x` | n8n-2x | n8n 2.1.0 | 5678 |
-| `n8n-1x` | n8n-1x | n8n 1.123.7 | 5679 |
+| `n8n-2x` | n8n-2x | n8n 2.1.0 with the repo mounted | 5678 |
+| `n8n-1x` | n8n-1x | n8n 1.123.7 with the repo mounted | 5679 |
 | `n8n-both` | n8n-1x + n8n-2x | Both n8n versions | 5678, 5679 |
+| `install-test` | embeddings + n8n-install | Stub embeddings API and a fresh n8n of `$N8N_VERSION` for `scripts/test-n8n-versions.sh` | none |
 | `dashboards` | opensearch-dashboards | OpenSearch Dashboards 3.0.0 | 5601 |
 
 ## Testing AI Tool Functionality
@@ -313,12 +355,16 @@ Check n8n logs for loading errors:
 docker logs n8n-test-2x 2>&1 | grep -i "opensearch\|error"
 ```
 
+### Package loads in the mounted n8n but not from the community nodes UI
+
+The mounted containers see the repo's `node_modules`. A real install only gets `dependencies` plus what n8n's own `node_modules` exposes. Run `pnpm test:unit` (`tests/runtimeImports.test.ts` names the offending import) and `scripts/test-n8n-versions.sh`.
+
 ### Integration tests fail with connection errors
 
 Wait for OpenSearch to be fully healthy:
 ```bash
 # Check health
-curl -s http://localhost:9200/_cluster/health | jq '.status'
+curl -sk https://localhost:9200/_cluster/health -u "admin:MyStr0ng#Pass!2024" | jq '.status'
 
 # Should return "green" or "yellow"
 ```
@@ -340,35 +386,10 @@ Coverage report is generated in `coverage/` directory. Open `coverage/lcov-repor
 
 ## CI/CD
 
-For CI pipelines, use the following workflow:
+`.github/workflows/ci.yml` runs on every push to master and every pull request:
 
-```yaml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        opensearch: ['2.6.0', '3.0.0']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install
-      - run: pnpm test:unit
-      - name: Start OpenSearch ${{ matrix.opensearch }}
-        run: |
-          if [ "${{ matrix.opensearch }}" = "3.0.0" ]; then
-            docker compose -f docker-compose.test.yml --profile v3 up -d
-          else
-            docker compose -f docker-compose.test.yml --profile v2 up -d
-          fi
-      - name: Wait for OpenSearch
-        run: |
-          for i in {1..30}; do
-            curl -s http://localhost:9200 && break || sleep 2
-          done
-      - run: pnpm test:integration
-```
+- `unit-tests`: lint, build, `pnpm test:unit`, then packs the tarball as an artifact
+- `integration-tests`: `pnpm test:integration` against an OpenSearch 3.0.0 service container
+- `n8n-install-tests`: one matrix job per version from `scripts/test-n8n-versions.sh --list`, each installing that tarball into a fresh n8n and executing the integration workflow
+
+`.github/workflows/publish.yml` runs when a push to master changes `package.json`. If the version is not on npm yet it lints, builds, runs the unit tests, publishes with provenance, tags the commit `v<version>` and mirrors the package to GitHub Packages. npm auth comes from a Trusted Publisher entry for this repository on npmjs.com, or an `NPM_TOKEN` repository secret.

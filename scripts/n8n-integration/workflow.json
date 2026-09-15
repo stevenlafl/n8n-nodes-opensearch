@@ -1,0 +1,1329 @@
+{
+  "id": "opensearch-integration",
+  "name": "OpenSearch integration test",
+  "versionId": "0f4e3a6c-6f2b-4b0a-9c2e-1d5b8a7c9e01",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "name": "Index: Create",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "resource": "index",
+        "indexId": "it-documents",
+        "additionalFields": {
+          "skipIfExists": true
+        }
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Index: Get",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "index",
+        "operation": "get",
+        "indexId": "it-documents",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Index: Get All",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "resource": "index",
+        "operation": "getAll",
+        "limit": 10
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Create",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "operation": "create",
+        "indexId": "it-documents",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "Test Document"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "This is test content for OpenSearch"
+            }
+          ]
+        },
+        "additionalFields": {},
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Get",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "indexId": "it-documents",
+        "documentId": "={{ $json._id }}",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Update",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "operation": "update",
+        "indexId": "it-documents",
+        "documentId": "={{ $json._id }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "Updated Document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Get Updated",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "indexId": "it-documents",
+        "documentId": "={{ $('Document: Create').item.json._id }}",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Wait For Index",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
+    },
+    {
+      "name": "Document: Get All",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "operation": "getAll",
+        "indexId": "it-documents",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Search",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        0
+      ],
+      "parameters": {
+        "operation": "search",
+        "indexId": "it-documents",
+        "query": "{\"query\": {\"match\": {\"title\": \"Updated\"}}}",
+        "returnAll": false,
+        "limit": 10,
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Document: Delete",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3080,
+        0
+      ],
+      "parameters": {
+        "operation": "delete",
+        "indexId": "it-documents",
+        "documentId": "={{ $('Document: Create').item.json._id }}",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Index: Delete",
+      "type": "n8n-nodes-opensearch.opensearch",
+      "typeVersion": 1,
+      "position": [
+        3300,
+        0
+      ],
+      "parameters": {
+        "resource": "index",
+        "operation": "delete",
+        "indexId": "it-documents",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Sample Texts",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3520,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "docs",
+              "name": "docs",
+              "type": "array",
+              "value": "[{\"text\":\"cats purr and chase mice\"},{\"text\":\"dogs bark and fetch sticks\"},{\"text\":\"boats float on the river\"}]"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Split Texts",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3740,
+        0
+      ],
+      "parameters": {
+        "fieldToSplitOut": "docs",
+        "options": {}
+      }
+    },
+    {
+      "name": "Vector Store: Insert",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        3960,
+        0
+      ],
+      "parameters": {
+        "mode": "insert",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "options": {
+          "clearIndex": true
+        }
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Wait For Insert",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4400,
+        0
+      ],
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
+    },
+    {
+      "name": "Vector Store: Load",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        4620,
+        0
+      ],
+      "parameters": {
+        "mode": "load",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "prompt": "cats",
+        "topK": 1,
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Owl Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4840,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "text",
+              "name": "text",
+              "type": "string",
+              "value": "owls hoot at night"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Vector Store: Update",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        5060,
+        0
+      ],
+      "parameters": {
+        "mode": "update",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "id": "manual-owl",
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Wait For Update",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5280,
+        0
+      ],
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      }
+    },
+    {
+      "name": "Vector Store: Load Owls",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        5500,
+        0
+      ],
+      "parameters": {
+        "mode": "load",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "prompt": "owls",
+        "topK": 1,
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Embeddings: Insert",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3960,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Data Loader: Insert",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        3960,
+        220
+      ],
+      "parameters": {
+        "dataType": "json",
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "simple",
+        "options": {}
+      }
+    },
+    {
+      "name": "Embeddings: Load",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4620,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Embeddings: Update",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5060,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Data Loader: Update",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        5060,
+        220
+      ],
+      "parameters": {
+        "dataType": "json",
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "simple",
+        "options": {}
+      }
+    },
+    {
+      "name": "Embeddings: Load Owls",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5500,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "First of Index: Get All",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "name": "First of Document: Get All",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        0
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "name": "First of Document: Search",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2860,
+        0
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "name": "First of Vector Store: Insert",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        4180,
+        0
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "name": "Agent: OpenSearch Tool",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        5720,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "find the cats",
+        "options": {}
+      }
+    },
+    {
+      "name": "Agent: Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        5940,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "find the cats",
+        "options": {}
+      }
+    },
+    {
+      "name": "QA Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
+      "typeVersion": 1.6,
+      "position": [
+        6160,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "what do cats do",
+        "options": {}
+      }
+    },
+    {
+      "name": "Chat Model: OpenSearch Tool",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        5720,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "fake-model"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "OpenSearch Tool",
+      "type": "n8n-nodes-opensearch.opensearchTool",
+      "typeVersion": 1,
+      "position": [
+        5720,
+        220
+      ],
+      "parameters": {
+        "operation": "search",
+        "indexId": "it-vectors",
+        "query": "={{ $fromAI('Query', 'Search term to find in documents', 'string') }}",
+        "returnAll": false,
+        "limit": 10,
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Chat Model: Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        5940,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "fake-model"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Vector Store: As Tool",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        5940,
+        220
+      ],
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the knowledge base",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Embeddings: Tool",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5940,
+        440
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Chat Model: QA",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6160,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "fake-model"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Vector Store Retriever",
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        6160,
+        220
+      ],
+      "parameters": {}
+    },
+    {
+      "name": "Vector Store: Retrieve",
+      "type": "n8n-nodes-opensearch.vectorStoreOpenSearch",
+      "typeVersion": 2,
+      "position": [
+        6160,
+        440
+      ],
+      "parameters": {
+        "mode": "retrieve",
+        "indexName": {
+          "__rl": true,
+          "value": "it-vectors",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openSearchApi": {
+          "id": "it-opensearch",
+          "name": "OpenSearch (integration test)"
+        }
+      }
+    },
+    {
+      "name": "Embeddings: Retrieve",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        6160,
+        660
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "it-openai",
+          "name": "Fake embeddings (integration test)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Index: Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Create": {
+      "main": [
+        [
+          {
+            "node": "Index: Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Get": {
+      "main": [
+        [
+          {
+            "node": "Index: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Get All": {
+      "main": [
+        [
+          {
+            "node": "First of Index: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Create": {
+      "main": [
+        [
+          {
+            "node": "Document: Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Get": {
+      "main": [
+        [
+          {
+            "node": "Document: Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Update": {
+      "main": [
+        [
+          {
+            "node": "Document: Get Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Get Updated": {
+      "main": [
+        [
+          {
+            "node": "Wait For Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait For Index": {
+      "main": [
+        [
+          {
+            "node": "Document: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Get All": {
+      "main": [
+        [
+          {
+            "node": "First of Document: Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Search": {
+      "main": [
+        [
+          {
+            "node": "First of Document: Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document: Delete": {
+      "main": [
+        [
+          {
+            "node": "Index: Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Index: Delete": {
+      "main": [
+        [
+          {
+            "node": "Sample Texts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Texts": {
+      "main": [
+        [
+          {
+            "node": "Split Texts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Texts": {
+      "main": [
+        [
+          {
+            "node": "Vector Store: Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Insert": {
+      "main": [
+        [
+          {
+            "node": "First of Vector Store: Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait For Insert": {
+      "main": [
+        [
+          {
+            "node": "Vector Store: Load",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Load": {
+      "main": [
+        [
+          {
+            "node": "Owl Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owl Text": {
+      "main": [
+        [
+          {
+            "node": "Vector Store: Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Update": {
+      "main": [
+        [
+          {
+            "node": "Wait For Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait For Update": {
+      "main": [
+        [
+          {
+            "node": "Vector Store: Load Owls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Insert": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Insert",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loader: Insert": {
+      "ai_document": [
+        [
+          {
+            "node": "Vector Store: Insert",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Load": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Load",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Update": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Update",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loader: Update": {
+      "ai_document": [
+        [
+          {
+            "node": "Vector Store: Update",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Load Owls": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Load Owls",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First of Index: Get All": {
+      "main": [
+        [
+          {
+            "node": "Document: Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First of Document: Get All": {
+      "main": [
+        [
+          {
+            "node": "Document: Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First of Document: Search": {
+      "main": [
+        [
+          {
+            "node": "Document: Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First of Vector Store: Insert": {
+      "main": [
+        [
+          {
+            "node": "Wait For Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Load Owls": {
+      "main": [
+        [
+          {
+            "node": "Agent: OpenSearch Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: OpenSearch Tool": {
+      "main": [
+        [
+          {
+            "node": "Agent: Vector Store Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Vector Store Tool": {
+      "main": [
+        [
+          {
+            "node": "QA Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model: OpenSearch Tool": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent: OpenSearch Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenSearch Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent: OpenSearch Tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model: Vector Store Tool": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent: Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: As Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent: Vector Store Tool",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Tool": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: As Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model: QA": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "QA Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retriever": {
+      "ai_retriever": [
+        [
+          {
+            "node": "QA Chain",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store: Retrieve": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings: Retrieve": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store: Retrieve",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

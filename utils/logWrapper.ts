@@ -10,13 +10,9 @@ import { BaseRetriever } from '@langchain/core/retrievers';
 import { BaseDocumentCompressor } from '@langchain/core/retrievers/document_compressors';
 import type { StructuredTool, Tool } from '@langchain/core/tools';
 import { VectorStore } from '@langchain/core/vectorstores';
-import { TextSplitter } from '@langchain/textsplitters';
-import type { BaseDocumentLoader } from '@langchain/classic/dist/document_loaders/base';
-import { OpenAIEmbeddings, AzureOpenAIEmbeddings } from '@langchain/openai';
 import type {
 	IDataObject,
 	IExecuteFunctions,
-	INodeExecutionData,
 	ISupplyDataFunctions,
 	ITaskMetadata,
 	NodeConnectionType,
@@ -33,8 +29,6 @@ import {
 	validateEmbedDocumentsInput,
 } from './embeddings/embeddingInputValidation';
 import { logAiEvent, isToolsInstance, isBaseChatMemory, isBaseChatMessageHistory } from './helpers';
-import { N8nBinaryLoader } from './N8nBinaryLoader';
-import { N8nJsonLoader } from './N8nJsonLoader';
 
 export async function callMethodAsync<T>(
 	this: T,
@@ -116,15 +110,9 @@ export function logWrapper<
 		| BaseRetriever
 		| BaseDocumentCompressor
 		| Embeddings
-		| OpenAIEmbeddings
-		| AzureOpenAIEmbeddings
 		| Document[]
 		| Document
-		| BaseDocumentLoader
-		| TextSplitter
-		| VectorStore
-		| N8nBinaryLoader
-		| N8nJsonLoader,
+		| VectorStore,
 >(originalInstance: T, executeFunctions: IExecuteFunctions | ISupplyDataFunctions): T {
 	return new Proxy(originalInstance, {
 		get: (target, prop) => {
@@ -268,11 +256,7 @@ export function logWrapper<
 			}
 
 			// ========== Embeddings ==========
-			if (
-				originalInstance instanceof Embeddings ||
-				originalInstance instanceof OpenAIEmbeddings ||
-				originalInstance instanceof AzureOpenAIEmbeddings
-			) {
+			if (originalInstance instanceof Embeddings) {
 				// Docs -> Embeddings
 				if (prop === 'embedDocuments' && 'embedDocuments' in target) {
 					return async (documents: string[]): Promise<number[][]> => {
@@ -346,77 +330,6 @@ export function logWrapper<
 						})) as Document[];
 
 						logAiEvent(executeFunctions, 'ai-document-reranked', { query });
-						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
-						return response;
-					};
-				}
-			}
-
-			// ========== N8n Loaders Process All ==========
-			if (
-				originalInstance instanceof N8nJsonLoader ||
-				originalInstance instanceof N8nBinaryLoader
-			) {
-				// Process All
-				if (prop === 'processAll' && 'processAll' in target) {
-					return async (items: INodeExecutionData[]): Promise<number[]> => {
-						connectionType = NodeConnectionTypes.AiDocument;
-						const { index } = executeFunctions.addInputData(connectionType, [items]);
-
-						const response = (await callMethodAsync.call(target, {
-							executeFunctions,
-							connectionType,
-							currentNodeRunIndex: index,
-							method: target[prop] as (...args: any[]) => Promise<unknown>,
-							arguments: [items],
-						})) as number[];
-
-						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
-						return response;
-					};
-				}
-
-				// Process Each
-				if (prop === 'processItem' && 'processItem' in target) {
-					return async (item: INodeExecutionData, itemIndex: number): Promise<number[]> => {
-						connectionType = NodeConnectionTypes.AiDocument;
-						const { index } = executeFunctions.addInputData(connectionType, [[item]]);
-
-						const response = (await callMethodAsync.call(target, {
-							executeFunctions,
-							connectionType,
-							currentNodeRunIndex: index,
-							method: target[prop] as (...args: any[]) => Promise<unknown>,
-							arguments: [item, itemIndex],
-						})) as number[];
-
-						logAiEvent(executeFunctions, 'ai-document-processed');
-						executeFunctions.addOutputData(connectionType, index, [
-							[{ json: { response }, pairedItem: { item: itemIndex } }],
-						]);
-						return response;
-					};
-				}
-			}
-
-			// ========== TextSplitter ==========
-			if (originalInstance instanceof TextSplitter) {
-				if (prop === 'splitText' && 'splitText' in target) {
-					return async (text: string): Promise<string[]> => {
-						connectionType = NodeConnectionTypes.AiTextSplitter;
-						const { index } = executeFunctions.addInputData(connectionType, [
-							[{ json: { textSplitter: text } }],
-						]);
-
-						const response = (await callMethodAsync.call(target, {
-							executeFunctions,
-							connectionType,
-							currentNodeRunIndex: index,
-							method: target[prop] as (...args: any[]) => Promise<unknown>,
-							arguments: [text],
-						})) as string[];
-
-						logAiEvent(executeFunctions, 'ai-text-split');
 						executeFunctions.addOutputData(connectionType, index, [[{ json: { response } }]]);
 						return response;
 					};

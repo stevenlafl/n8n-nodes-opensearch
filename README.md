@@ -50,8 +50,8 @@ You will need a baseURL and a username and password to authenticate to the OpenS
 | Package Version | n8n Version | Notes |
 |-----------------|-------------|-------|
 | @0.1.4 | 1.48.0+ | Tested with 1.62.1 |
-| @0.2.x | 2.0.0+ | Full support including AI tools |
-| @0.2.x | 1.100.0+ | AI tools supported |
+| @0.2.6 | 1.120.0+ and 2.x | Installed and executed on 1.120.4, 1.123.7, 2.1.0 and 2.38.7 in CI |
+| @0.2.0 to @0.2.5 | 1.121.0 to 2.28.x | Fails to load outside that range, see 0.2.6 |
 
 ### Using as AI Tool
 
@@ -86,6 +86,12 @@ Sample n8n workflows demonstrating OpenSearch node usage are available in the [`
 Import these into your n8n instance to see examples of all operations including document CRUD, index management, and vector store usage.
 
 ## Version History
+
+### 0.2.6 (2026-09-14)
+- Fixed `Cannot find module '@langchain/classic/agents'` when installing through the community nodes UI on n8n 1.120 and on n8n 2.29 and later
+- Runtime imports limited to what n8n exposes to community packages, enforced by a test
+- Fresh-install integration test against n8n 1.120.4, 1.123.7, 2.1.0 and 2.38.7 on every pull request
+- Publishing to npm happens from GitHub Actions with provenance when the version changes on master
 
 ### 0.2.5 (2025-12-19)
 - Fixed PostgreSQL/MySQL compatibility for VectorStoreOpenSearch node versioning

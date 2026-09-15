@@ -5,9 +5,8 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import type { BaseLLM } from '@langchain/core/language_models/llms';
 import type { BaseMessage } from '@langchain/core/messages';
 import type { Tool } from '@langchain/core/tools';
-import { Toolkit } from '@langchain/classic/agents';
-import type { BaseChatMemory } from '@langchain/classic/memory';
-import { NodeConnectionTypes, NodeOperationError, jsonStringify } from 'n8n-workflow';
+import type { BaseChatMemory } from '@langchain/community/memory/chat_memory';
+import { NodeOperationError, jsonStringify } from 'n8n-workflow';
 import type {
 	AiEvent,
 	IDataObject,
@@ -15,8 +14,6 @@ import type {
 	ISupplyDataFunctions,
 	IWebhookFunctions,
 } from 'n8n-workflow';
-
-import { N8nTool } from './N8nTool';
 
 function hasMethods<T>(obj: unknown, ...methodNames: Array<string | symbol>): obj is T {
 	return methodNames.every(
@@ -201,78 +198,6 @@ export function escapeSingleCurlyBrackets(text?: string): string | undefined {
 
 	return result;
 }
-
-export const getConnectedTools = async (
-	ctx: IExecuteFunctions | IWebhookFunctions | ISupplyDataFunctions,
-	enforceUniqueNames: boolean,
-	convertStructuredTool: boolean = true,
-	escapeCurlyBrackets: boolean = false,
-) => {
-	const toolkitConnections = (await ctx.getInputConnectionData(
-		NodeConnectionTypes.AiTool,
-		0,
-	)) as Array<Toolkit | Tool>;
-
-	// Get parent nodes to map toolkits to their source nodes
-	const parentNodes =
-		'getParentNodes' in ctx
-			? ctx.getParentNodes(ctx.getNode().name, {
-					connectionType: NodeConnectionTypes.AiTool,
-					depth: 1,
-				})
-			: [];
-
-	const connectedTools = (toolkitConnections ?? []).flatMap((toolOrToolkit, index) => {
-		if (toolOrToolkit instanceof Toolkit) {
-			const tools = toolOrToolkit.getTools() as Tool[];
-			// Add metadata to each tool from the toolkit
-			return tools.map((tool) => {
-				const sourceNode = parentNodes[index] ?? tool.name;
-
-				tool.metadata ??= {};
-				tool.metadata.isFromToolkit = true;
-				tool.metadata.sourceNodeName = sourceNode?.name;
-				return tool;
-			});
-		} else {
-			const sourceNode = parentNodes[index] ?? toolOrToolkit.name;
-			toolOrToolkit.metadata ??= {};
-			toolOrToolkit.metadata.isFromToolkit = false;
-			toolOrToolkit.metadata.sourceNodeName = sourceNode?.name;
-		}
-
-		return toolOrToolkit;
-	});
-
-	if (!enforceUniqueNames) return connectedTools;
-
-	const seenNames = new Set<string>();
-
-	const finalTools: Tool[] = [];
-
-	for (const tool of connectedTools) {
-		const { name } = tool;
-		if (seenNames.has(name)) {
-			throw new NodeOperationError(
-				ctx.getNode(),
-				`You have multiple tools with the same name: '${name}', please rename them to avoid conflicts`,
-			);
-		}
-		seenNames.add(name);
-
-		if (escapeCurlyBrackets) {
-			tool.description = escapeSingleCurlyBrackets(tool.description) ?? tool.description;
-		}
-
-		if (convertStructuredTool && tool instanceof N8nTool) {
-			finalTools.push(tool.asDynamicTool());
-		} else {
-			finalTools.push(tool);
-		}
-	}
-
-	return finalTools;
-};
 
 /**
  * Sometimes model output is wrapped in an additional object property.

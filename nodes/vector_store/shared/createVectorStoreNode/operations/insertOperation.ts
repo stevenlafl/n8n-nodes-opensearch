@@ -7,10 +7,9 @@ import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 
 import { logAiEvent } from '../../../../../utils/helpers';
-import type { N8nBinaryLoader } from '../../../../../utils/N8nBinaryLoader';
-import type { N8nJsonLoader } from '../../../../../utils/N8nJsonLoader';
 
 import { processDocument } from '../../processDocuments';
+import type { DocumentLoader } from '../../processDocuments';
 import type { VectorStoreNodeConstructorArgs } from '../types';
 
 /**
@@ -26,8 +25,7 @@ export async function handleInsertOperation<T extends VectorStore = VectorStore>
 	// Get the input items and document data
 	const items = context.getInputData();
 	const documentInput = (await context.getInputConnectionData(NodeConnectionTypes.AiDocument, 0)) as
-		| N8nJsonLoader
-		| N8nBinaryLoader
+		| DocumentLoader
 		| Array<Document<Record<string, unknown>>>;
 
 	const resultData: INodeExecutionData[] = [];

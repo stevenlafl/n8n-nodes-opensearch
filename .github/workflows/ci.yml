@@ -35,6 +35,49 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit
 
+      - name: Pack
+        run: pnpm pack --pack-destination /tmp
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: /tmp/n8n-nodes-opensearch-*.tgz
+
+  # Which n8n versions the install test below runs against, from scripts/test-n8n-versions.sh
+  n8n-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.list.outputs.versions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: list
+        run: echo "versions=$(scripts/test-n8n-versions.sh --list | jq -Rsc 'split("\n") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+
+  # Fresh install of the packed package into each supported n8n version, then a workflow
+  # that exercises both nodes is executed through n8n's CLI
+  n8n-install-tests:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, n8n-versions]
+    strategy:
+      fail-fast: false
+      matrix:
+        n8n: ${{ fromJSON(needs.n8n-versions.outputs.versions) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: /tmp
+
+      - name: Test against n8n ${{ matrix.n8n }}
+        run: scripts/test-n8n-versions.sh /tmp/n8n-nodes-opensearch-*.tgz ${{ matrix.n8n }}
+
   # Integration tests with OpenSearch
   integration-tests:
     runs-on: ubuntu-latest

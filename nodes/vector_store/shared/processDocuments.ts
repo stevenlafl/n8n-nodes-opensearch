@@ -3,15 +3,15 @@
 import type { Document } from '@langchain/core/documents';
 import type { INodeExecutionData } from 'n8n-workflow';
 
-import { N8nBinaryLoader } from '../../../utils/N8nBinaryLoader';
-import { N8nJsonLoader } from '../../../utils/N8nJsonLoader';
+// Shape of the N8nJsonLoader/N8nBinaryLoader instances that n8n's own document loader nodes
+// supply on the AiDocument input. Those classes live inside n8n, so only the interface is described here.
+export interface DocumentLoader {
+	processAll: (items: INodeExecutionData[]) => Promise<Document[]>;
+	processItem: (item: INodeExecutionData, itemIndex: number) => Promise<Document[]>;
+}
 
 // Type guard using duck typing - checks if the object has processAll/processItem methods
-// This is needed because n8n's built-in document loaders return their own N8nJsonLoader/N8nBinaryLoader
-// instances which are different classes from our local ones, causing instanceof to fail
-function isDocumentLoader(
-	input: unknown,
-): input is { processAll: (items: INodeExecutionData[]) => Promise<Document[]>; processItem: (item: INodeExecutionData, itemIndex: number) => Promise<Document[]> } {
+function isDocumentLoader(input: unknown): input is DocumentLoader {
 	return (
 		input !== null &&
 		typeof input === 'object' &&
@@ -23,7 +23,7 @@ function isDocumentLoader(
 }
 
 export async function processDocuments(
-	documentInput: N8nJsonLoader | N8nBinaryLoader | Array<Document<Record<string, unknown>>>,
+	documentInput: DocumentLoader | Array<Document<Record<string, unknown>>>,
 	inputItems: INodeExecutionData[],
 ) {
 	let processedDocuments: Document[];
@@ -46,7 +46,7 @@ export async function processDocuments(
 	};
 }
 export async function processDocument(
-	documentInput: N8nJsonLoader | N8nBinaryLoader | Array<Document<Record<string, unknown>>>,
+	documentInput: DocumentLoader | Array<Document<Record<string, unknown>>>,
 	inputItem: INodeExecutionData,
 	itemIndex: number,
 ) {

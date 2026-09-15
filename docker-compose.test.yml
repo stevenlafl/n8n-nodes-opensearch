@@ -122,6 +122,41 @@ services:
     profiles:
       - dashboards
 
+  # Stub OpenAI embeddings API for scripts/test-n8n-versions.sh
+  embeddings:
+    image: python:3.12-alpine
+    container_name: embeddings-test
+    command: python /app.py
+    volumes:
+      - ./scripts/n8n-integration/fake-openai.py:/app.py:ro
+    networks:
+      - opensearch-net
+    profiles:
+      - install-test
+
+  # Fresh n8n of any version for scripts/test-n8n-versions.sh. The package is installed into it
+  # from a tarball the way the community nodes UI does it; nothing from the repo is mounted.
+  n8n-install:
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.38.7}
+    container_name: n8n-install-test
+    entrypoint: ["sh", "-c", "sleep infinity"]
+    environment:
+      - N8N_ENCRYPTION_KEY=integration-test
+      - N8N_LOG_LEVEL=error
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      embeddings:
+        condition: service_started
+    networks:
+      - opensearch-net
+    profiles:
+      - install-test
+
 volumes:
   opensearch-data:
   opensearch-data-2x:

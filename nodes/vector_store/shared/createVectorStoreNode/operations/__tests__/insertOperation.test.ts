@@ -8,9 +8,7 @@ import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 
 import { logAiEvent } from '../../../../../../utils/helpers';
-import type { N8nBinaryLoader } from '../../../../../../utils/N8nBinaryLoader';
-import type { N8nJsonLoader } from '../../../../../../utils/N8nJsonLoader';
-
+import type { DocumentLoader } from '../../../processDocuments';
 import type { VectorStoreNodeConstructorArgs } from '../../types';
 import { handleInsertOperation } from '../insertOperation';
 
@@ -75,7 +73,7 @@ describe('handleInsertOperation', () => {
 	let mockVectorStore: MockProxy<VectorStore>;
 	let mockArgs: VectorStoreNodeConstructorArgs<VectorStore>;
 	let mockInputItems: INodeExecutionData[];
-	let mockJsonLoader: MockProxy<N8nJsonLoader>;
+	let mockJsonLoader: MockProxy<DocumentLoader>;
 
 	beforeEach(() => {
 		// Mock input items
@@ -106,7 +104,7 @@ describe('handleInsertOperation', () => {
 		mockEmbeddings = mock<Embeddings>();
 
 		// Setup JSON loader mock
-		mockJsonLoader = mock<N8nJsonLoader>();
+		mockJsonLoader = mock<DocumentLoader>();
 
 		// Setup vector store mock
 		mockVectorStore = mock<VectorStore>();
@@ -168,7 +166,7 @@ describe('handleInsertOperation', () => {
 
 	it('should handle different document input types', async () => {
 		// Test with Binary Loader
-		const mockBinaryLoader = mock<N8nBinaryLoader>();
+		const mockBinaryLoader = mock<DocumentLoader>();
 		mockContext.getInputConnectionData.mockResolvedValueOnce(mockBinaryLoader);
 
 		await handleInsertOperation(mockContext, mockArgs, mockEmbeddings);

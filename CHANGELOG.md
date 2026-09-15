@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.6] - 2026-09-14
+
+### Fixed
+- Package failed to load when installed through the community nodes UI with
+  `Cannot find module '@langchain/classic/agents'` on n8n 1.120 (#6) and on n8n 2.29 and later (#8).
+  n8n installs a community package with its dev and peer dependencies stripped and resolves
+  everything else through its own `node_modules`, which never contained `@langchain/classic` on
+  1.120 and, since the pnpm layout in 2.29, exposes only `@langchain/core` of the langchain packages.
+  Runtime imports are now limited to `@langchain/core`, `n8n-workflow`, `zod`, `lodash` and the
+  bundled `@opensearch-project/opensearch`. The bind mount used for manual testing had hidden this
+  because it made the repo's own `node_modules` visible to n8n.
+
+### Added
+- `tests/runtimeImports.test.ts` fails on any new runtime import outside that allowlist
+- `scripts/test-n8n-versions.sh` installs the packed tarball into fresh n8n 1.120.4, 1.123.7, 2.1.0
+  and 2.38.7 containers the way the community nodes UI does and executes a workflow covering every
+  operation of both nodes, including the vector store as retriever and as agent tool and the
+  OpenSearch node as agent tool, against a stub OpenAI API; CI runs it for every version on each
+  pull request (`install-test` compose profile)
+- `publish.yml` publishes to npm with provenance when the version in `package.json` changes on
+  master, tags the commit and mirrors the package to GitHub Packages
+
+### Removed
+- `N8nBinaryLoader`, `N8nJsonLoader` and `N8nTool` copies of n8n internals. The document loader
+  connected to the vector store is n8n's own instance and is used through its
+  `processAll`/`processItem` interface
+- Unused `getConnectedTools` helper
+- `@langchain/community` from `peerDependencies`
+
 ## [0.2.5] - 2025-12-19
 
 ### Added
